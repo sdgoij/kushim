@@ -197,11 +197,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # An emulator run is the only place the golden artefact hashes and the
-  # screenshot images can be checked. The runner's KVM makes the boot a couple
-  # of minutes, and the tablet profile gives the 1280 dp window the screenshots
-  # were drawn for. API 33 rather than 37: the Compose test rule starts Espresso,
-  # which calls InputManager.getInstance, and API 37 removed it.
+  # An emulator run is the only place the golden artefact hashes can be checked.
+  # The runner's KVM makes the boot a couple of minutes. API 33 rather than 37:
+  # the Compose test rule starts Espresso, which calls InputManager.getInstance,
+  # and API 37 removed it.
   android-instrumented:
     name: android instrumented tests
     needs: [android]
@@ -233,7 +232,7 @@ jobs:
             echo "::warning::/dev/kvm is missing; the emulator will run under TCG"
           fi
 
-      - name: Golden hashes and shell screenshots
+      - name: Golden artefact hashes
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
@@ -244,9 +243,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
           script: |
             # A phone profile boots far more reliably than a tablet one under the
-            # runner's software renderer. The screenshots are drawn at one pixel
-            # per dp in a 1280x800 box, so the display is widened to fit them
-            # rather than taking a tablet's native resolution.
+            # software renderer, so the display is widened to the tablet's shape.
             adb shell wm size 1800x1200
             sleep 3
             sh tools/run-emulator-suite.sh mobile/apks

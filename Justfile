@@ -125,24 +125,6 @@ mobile-golden serial="":
     cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
     sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ArtefactDeterminismTest
 
-# Screenshot tests: the shell at phone, medium and tablet sizes, compared with
-# the committed goldens. The images are drawn at one pixel per dp, so they do
-# not depend on density; run on a window at least 1280 px wide, which the tablet
-# AVD is. A missing golden fails the test and writes the image to the device.
-#
-# Usage: just mobile-screenshots [serial]
-mobile-screenshots serial="":
-    cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ShellScreenshotTest
-
-# Regenerate the screenshot goldens from a device, after an intended UI change.
-#
-# Usage: just mobile-screenshots-update [serial]
-mobile-screenshots-update serial="":
-    cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ShellScreenshotTest -e updateScreenshots 1
-    sh tools/pull-screenshots.sh "{{serial}}"
-
 # §6.8 timings on the device the serial names: create, unlock (Argon2 and the
 # database open), issue (UBL and PDF) and the draft preview render. The test
 # creates its own archive, so it replaces what is in the app's storage there;

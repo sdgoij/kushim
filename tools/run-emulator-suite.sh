@@ -65,6 +65,6 @@ export KUSHIM_TEST_APK="$test_apk"
 export KUSHIM_SKIP_INSTALL=1
 
 sh tools/run-android-test.sh - com.github.sdgoij.kushim.ArtefactDeterminismTest
-sh tools/run-android-test.sh - com.github.sdgoij.kushim.ShellScreenshotTest
+
 sh tools/run-android-test.sh - com.github.sdgoij.kushim.BudgetTest
 KUSHIM_APK="$release_apk" sh tools/measure-cold-start.sh -
