@@ -980,6 +980,25 @@ overflow at 125 % and 150 % must equal the one at 100 %. The measure was proven
 against a deliberately too-narrow window, where it reports the first overflowing
 row, so it cannot pass by looking at a frame that drew nothing.
 
+**The lock screen became a front door (2026-11-23).** The window used to open
+on a passphrase prompt for an archive that did not exist yet, with the archive
+and key-file paths across the panel and four buttons of equal weight. It is now
+a centred column 400 points wide — the name, one line of pitch, and one card
+whose single filled button is the action being asked for — with the paths folded
+under **Where the books live**, closed by default. Which form opens follows the
+archive: a database that is not there yet opens on **Create**, an existing one on
+**Unlock**, and `no_archive_yet_opens_on_create` and
+`an_archive_that_is_there_opens_on_unlock` pin that. The words are the product's
+— archive and key file, not database and keystore. The work lives in
+`crates/app/src/lib.rs` (`lock_column`, `primary_button`, `secret_field`,
+`paths_section`, `initial_form`) and in `text::shell` for the strings. The layout
+carries no float arithmetic, because the workspace denies it.
+
+The shell behind that door has not had the same treatment. The rail, the pinned
+footer, and the spacing inside the four tabs are where the next UI work goes;
+the lock screen was picked first because it is the only screen a newcomer cannot
+avoid.
+
 ---
 
 ### M6 — Security, keys, audit, backup (3 weeks, part of v1.0)
