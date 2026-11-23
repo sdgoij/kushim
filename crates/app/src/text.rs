@@ -73,14 +73,31 @@ pub mod shell {
         )
     }
 
-    /// Label above the database path.
+    /// Label above the archive's path.
     pub fn database_label(language: Language) -> &'static str {
-        sentence!(language, "Database", "Database")
+        sentence!(language, "Archive", "Archief")
     }
 
-    /// Label above the keystore path.
+    /// Label above the key file's path.
     pub fn keystore_label(language: Language) -> &'static str {
-        sentence!(language, "Keystore", "Sleutelkluis")
+        sentence!(language, "Key file", "Sleutelbestand")
+    }
+
+    /// The disclosure that holds the archive and key-file paths.
+    ///
+    /// A newcomer never needs these, so they start folded. Someone opening
+    /// books kept elsewhere knows what they are looking for.
+    pub fn where_books_live(language: Language) -> &'static str {
+        sentence!(language, "Where the books live", "Waar de boeken staan")
+    }
+
+    /// Explains the two paths inside that disclosure.
+    pub fn where_books_note(language: Language) -> &'static str {
+        sentence!(
+            language,
+            "One encrypted archive and the key file beside it. Change these only to open books kept somewhere else.",
+            "Eén versleuteld archief en het sleutelbestand ernaast. Wijzig dit alleen om boeken te openen die ergens anders staan."
+        )
     }
 
     /// Opens the file picker for a path field.
@@ -100,7 +117,7 @@ pub mod shell {
 
     /// Starts creating one.
     pub fn create_database_action(language: Language) -> &'static str {
-        sentence!(language, "Create new database", "Nieuwe database maken")
+        sentence!(language, "Create a new archive", "Nieuw archief maken")
     }
 
     /// Switches to the recovery route.
@@ -3029,6 +3046,8 @@ mod tests {
             shell::tagline(language),
             shell::database_label(language),
             shell::keystore_label(language),
+            shell::where_books_live(language),
+            shell::where_books_note(language),
             shell::browse_action(language),
             shell::passphrase_label(language),
             shell::unlock_action(language),

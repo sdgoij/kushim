@@ -19,7 +19,7 @@ mod workspace;
 /// Marks the context as styled, so installing is not repeated every frame.
 const THEME_INSTALLED: &str = "kushim.theme-installed";
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use store::StoreError;
 use zeroize::{Zeroize, Zeroizing};
@@ -148,9 +148,7 @@ impl Default for KushimApp {
             database_path: database.display().to_string(),
             keystore_path: keystore_path.clone(),
             state: UiState::Locked {
-                form: LockForm::Unlock {
-                    passphrase: String::new(),
-                },
+                form: initial_form(&database),
                 error: None,
             },
             idle: idle::IdleLock::new(idle::configured_timeout(), std::time::Instant::now()),
@@ -202,6 +200,10 @@ impl KushimApp {
         let mut app = Self::default();
         app.database_path = database.display().to_string();
         app.keystore_path = keystore.display().to_string();
+        app.state = UiState::Locked {
+            form: initial_form(Path::new(&app.database_path)),
+            error: None,
+        };
         app.device_ready = app.device_ready_for(&app.keystore_path);
         app
     }
@@ -618,6 +620,130 @@ fn path_field(ui: &mut egui::Ui, path: &mut String, browse: &str) -> bool {
     .inner
 }
 
+/// The widest the lock screen's column gets.
+///
+/// Without a bound the fields stretch across a maximised window, which is the
+/// thing that made the first screen read as a form rather than a front door.
+const LOCK_WIDTH: f32 = 400.0;
+
+/// Draws the lock screen's centred column: the name, one line of pitch, and a
+/// single card holding whatever the current form needs.
+fn lock_column(ui: &mut egui::Ui, tagline: Option<&str>, add: impl FnOnce(&mut egui::Ui)) {
+    let tokens = theme::palette(ui.ctx());
+    ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+        // The column sits slightly above the middle: a form pinned to the exact
+        // centre looks like it is floating, and the eye starts higher.
+        ui.add_space(48.0);
+        let width = ui.available_width().min(LOCK_WIDTH);
+        ui.allocate_ui_with_layout(
+            egui::vec2(width, 0.0),
+            egui::Layout::top_down(egui::Align::LEFT),
+            |ui| {
+                ui.set_min_width(width);
+                ui.label(egui::RichText::new(text::shell::PRODUCT).size(28.0).strong());
+                if let Some(line) = tagline {
+                    ui.add_space(2.0);
+                    ui.label(egui::RichText::new(line).color(tokens.muted).size(13.0));
+                }
+                ui.add_space(18.0);
+                egui::Frame::new()
+                    .fill(tokens.surface)
+                    .stroke(egui::Stroke::new(1.0, tokens.border))
+                    .corner_radius(10)
+                    .inner_margin(egui::Margin::same(20))
+                    .show(ui, |ui| {
+                        // The frame already removed its margin from what is left.
+                        ui.set_min_width(ui.available_width());
+                        add(ui);
+                    });
+            },
+        );
+    });
+}
+
+/// The one action a card is asking for.
+///
+/// It fills and uses the accent so it reads as the answer rather than as one
+/// button among four equally important ones.
+fn primary_button(ui: &mut egui::Ui, label: &str) -> bool {
+    let tokens = theme::palette(ui.ctx());
+    ui.add_sized(
+        [ui.available_width(), 32.0],
+        egui::Button::new(egui::RichText::new(label).color(tokens.accent_text).strong())
+            .fill(tokens.accent)
+            .corner_radius(8),
+    )
+    .clicked()
+}
+
+/// A labelled passphrase field that fills the card.
+fn secret_field(ui: &mut egui::Ui, label: &str, value: &mut String) {
+    ui.label(
+        egui::RichText::new(label)
+            .color(theme::palette(ui.ctx()).muted)
+            .size(13.0),
+    );
+    ui.add_sized(
+        [ui.available_width(), 28.0],
+        egui::TextEdit::singleline(value).password(true),
+    );
+}
+
+/// The archive and key-file paths, folded away.
+fn paths_section(
+    ui: &mut egui::Ui,
+    language: text::Language,
+    database: &mut String,
+    keystore: &mut String,
+) -> Option<Action> {
+    let mut action = None;
+    let muted = theme::palette(ui.ctx()).muted;
+    egui::CollapsingHeader::new(text::shell::where_books_live(language))
+        .default_open(false)
+        .show(ui, |ui| {
+            ui.label(
+                egui::RichText::new(text::shell::where_books_note(language))
+                    .color(muted)
+                    .size(12.0),
+            );
+            ui.add_space(8.0);
+            ui.label(
+                egui::RichText::new(text::shell::database_label(language))
+                    .color(muted)
+                    .size(13.0),
+            );
+            if path_field(ui, database, text::shell::browse_action(language)) {
+                action = Some(Action::ChooseDatabase);
+            }
+            ui.label(
+                egui::RichText::new(text::shell::keystore_label(language))
+                    .color(muted)
+                    .size(13.0),
+            );
+            if path_field(ui, keystore, text::shell::browse_action(language)) {
+                action = Some(Action::ChooseKeystore);
+            }
+        });
+    action
+}
+
+/// Which form to open on.
+///
+/// An archive that is not there yet is a first run, and the first thing a
+/// newcomer saw used to be a passphrase prompt for books they had never made.
+fn initial_form(database: &Path) -> LockForm {
+    if database.exists() {
+        LockForm::Unlock {
+            passphrase: String::new(),
+        }
+    } else {
+        LockForm::Create {
+            passphrase: String::new(),
+            confirmation: String::new(),
+        }
+    }
+}
+
 impl eframe::App for KushimApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // A window created outside `run` has not been styled yet; do it once.
@@ -653,121 +779,122 @@ impl eframe::App for KushimApp {
             let device_ready = self.device_ready;
             match &mut self.state {
                 UiState::Locked { form, error } => {
-                    ui.heading(text::shell::PRODUCT);
-                    match form {
-                        LockForm::Create {
-                            passphrase,
-                            confirmation,
-                        } => {
-                            ui.label(text::shell::create_note(language));
-                            ui.add_space(12.0);
+                    // The pitch belongs to the screen someone lands on; the create
+                    // and reset forms say what they do in their own words.
+                    let tagline = match form {
+                        LockForm::Unlock { .. } => Some(text::shell::tagline(language)),
+                        LockForm::Create { .. } | LockForm::Reset { .. } => None,
+                    };
+                    lock_column(ui, tagline, |ui| {
+                        match form {
+                            LockForm::Create {
+                                passphrase,
+                                confirmation,
+                            } => {
+                                ui.label(text::shell::create_note(language));
+                                ui.add_space(14.0);
 
-                            ui.label(text::shell::new_passphrase_label(language));
-                            ui.add(egui::TextEdit::singleline(passphrase).password(true));
-                            strength_row(ui, language, passphrase.as_str());
+                                secret_field(ui, text::shell::new_passphrase_label(language), passphrase);
+                                strength_row(ui, language, passphrase.as_str());
 
-                            ui.add_space(8.0);
-                            ui.label(text::shell::repeat_passphrase_label(language));
-                            ui.add(egui::TextEdit::singleline(confirmation).password(true));
+                                ui.add_space(10.0);
+                                secret_field(ui, text::shell::repeat_passphrase_label(language), confirmation);
 
-                            ui.add_space(8.0);
-                            ui.horizontal(|ui| {
-                                if ui.button(text::shell::create_action(language)).clicked() {
+                                ui.add_space(16.0);
+                                if primary_button(ui, text::shell::create_action(language)) {
                                     action = Some(Action::Create);
                                 }
+                                ui.add_space(4.0);
                                 if ui.button(text::shell::back_action(language)).clicked() {
                                     action = Some(Action::CancelCreate);
                                 }
-                            });
-                        }
-                        LockForm::Unlock { passphrase } => {
-                            ui.label(text::shell::tagline(language));
-                            ui.add_space(12.0);
-
-                            ui.label(text::shell::database_label(language));
-                            if path_field(ui, &mut self.database_path, text::shell::browse_action(language)) {
-                                action = Some(Action::ChooseDatabase);
+                                if let Some(chosen) =
+                                    paths_section(ui, language, &mut self.database_path, &mut self.keystore_path)
+                                {
+                                    action = Some(chosen);
+                                }
                             }
-                            ui.label(text::shell::keystore_label(language));
-                            if path_field(ui, &mut self.keystore_path, text::shell::browse_action(language)) {
-                                action = Some(Action::ChooseKeystore);
-                            }
-                            ui.add_space(8.0);
+                            LockForm::Unlock { passphrase } => {
+                                secret_field(ui, text::shell::passphrase_label(language), passphrase);
+                                strength_row(ui, language, passphrase.as_str());
 
-                            ui.label(text::shell::passphrase_label(language));
-                            ui.add(egui::TextEdit::singleline(passphrase).password(true));
-                            strength_row(ui, language, passphrase.as_str());
-
-                            ui.add_space(8.0);
-                            ui.horizontal(|ui| {
-                                if ui.button(text::shell::unlock_action(language)).clicked() {
+                                ui.add_space(14.0);
+                                if primary_button(ui, text::shell::unlock_action(language)) {
                                     action = Some(Action::Unlock);
                                 }
+                                if device_ready && ui.button(text::shell::unlock_with_device(language)).clicked() {
+                                    action = Some(Action::UnlockDevice);
+                                }
+
+                                if let Some(chosen) =
+                                    paths_section(ui, language, &mut self.database_path, &mut self.keystore_path)
+                                {
+                                    action = Some(chosen);
+                                }
+
+                                ui.add_space(14.0);
                                 if ui.button(text::shell::create_database_action(language)).clicked() {
                                     action = Some(Action::BeginCreate);
                                 }
-                            });
-                            if ui.button(text::shell::forgotten_action(language)).clicked() {
-                                action = Some(Action::BeginReset);
-                            }
-                            if device_ready && ui.button(text::shell::unlock_with_device(language)).clicked() {
-                                action = Some(Action::UnlockDevice);
-                            }
-                        }
-                        LockForm::Reset {
-                            recovery_key,
-                            new_passphrase,
-                            repeat,
-                            replacement,
-                        } => match replacement {
-                            Some(key) => {
-                                ui.label(text::shell::reset_done_note(language));
-                                ui.add_space(8.0);
-                                ui.label(text::shell::new_recovery_key_label(language));
-                                ui.label(egui::RichText::new(key.as_str()).monospace());
-                                ui.add_space(8.0);
-                                ui.colored_label(
-                                    theme::palette(ui.ctx()).warning,
-                                    text::shell::keep_key_note(language),
-                                );
-                                ui.add_space(8.0);
-                                if ui.button(text::shell::written_down_action(language)).clicked() {
-                                    action = Some(Action::FinishReset);
+                                if ui.button(text::shell::forgotten_action(language)).clicked() {
+                                    action = Some(Action::BeginReset);
                                 }
                             }
-                            None => {
-                                ui.label(text::shell::reset_note(language));
-                                ui.add_space(12.0);
+                            LockForm::Reset {
+                                recovery_key,
+                                new_passphrase,
+                                repeat,
+                                replacement,
+                            } => match replacement {
+                                Some(key) => {
+                                    ui.label(text::shell::reset_done_note(language));
+                                    ui.add_space(12.0);
+                                    ui.label(
+                                        egui::RichText::new(text::shell::new_recovery_key_label(language))
+                                            .color(theme::palette(ui.ctx()).muted)
+                                            .size(13.0),
+                                    );
+                                    ui.label(egui::RichText::new(key.as_str()).monospace().strong());
+                                    ui.add_space(12.0);
+                                    ui.colored_label(
+                                        theme::palette(ui.ctx()).warning,
+                                        text::shell::keep_key_note(language),
+                                    );
+                                    ui.add_space(14.0);
+                                    if primary_button(ui, text::shell::written_down_action(language)) {
+                                        action = Some(Action::FinishReset);
+                                    }
+                                }
+                                None => {
+                                    ui.label(text::shell::reset_note(language));
+                                    ui.add_space(14.0);
 
-                                ui.label(text::shell::recovery_key_label(language));
-                                ui.add(egui::TextEdit::singleline(recovery_key).password(true));
+                                    secret_field(ui, text::shell::recovery_key_label(language), recovery_key);
 
-                                ui.add_space(8.0);
-                                ui.label(text::shell::new_passphrase_label(language));
-                                ui.add(egui::TextEdit::singleline(new_passphrase).password(true));
-                                strength_row(ui, language, new_passphrase.as_str());
+                                    ui.add_space(10.0);
+                                    secret_field(ui, text::shell::new_passphrase_label(language), new_passphrase);
+                                    strength_row(ui, language, new_passphrase.as_str());
 
-                                ui.add_space(8.0);
-                                ui.label(text::shell::repeat_new_passphrase_label(language));
-                                ui.add(egui::TextEdit::singleline(repeat).password(true));
+                                    ui.add_space(10.0);
+                                    secret_field(ui, text::shell::repeat_new_passphrase_label(language), repeat);
 
-                                ui.add_space(8.0);
-                                ui.horizontal(|ui| {
-                                    if ui.button(text::shell::reset_action(language)).clicked() {
+                                    ui.add_space(16.0);
+                                    if primary_button(ui, text::shell::reset_action(language)) {
                                         action = Some(Action::Reset);
                                     }
+                                    ui.add_space(4.0);
                                     if ui.button(text::shell::back_action(language)).clicked() {
                                         action = Some(Action::CancelReset);
                                     }
-                                });
-                            }
-                        },
-                    }
+                                }
+                            },
+                        }
 
-                    if let Some(message) = error {
-                        ui.add_space(8.0);
-                        ui.colored_label(theme::palette(ui.ctx()).error, message);
-                    }
+                        if let Some(message) = error.as_deref() {
+                            ui.add_space(12.0);
+                            ui.colored_label(theme::palette(ui.ctx()).error, message);
+                        }
+                    });
                 }
                 UiState::Unlocked { session, workspace } => {
                     if workspace.ui_with_device(ui, session, &mut self.appearance, &mut self.language, &*self.device)
@@ -1315,6 +1442,41 @@ mod tests {
         let app = KushimApp::with_paths(database.clone(), keystore.clone());
         assert_eq!(app.database_path, database.display().to_string());
         assert_eq!(app.keystore_path, keystore.display().to_string());
+    }
+
+    /// A first run used to land on a passphrase prompt for an archive nobody had
+    /// made yet, with the key-file path open on the screen.
+    #[test]
+    fn no_archive_yet_opens_on_create() {
+        let directory = TempDir::new().unwrap();
+        let app = KushimApp::with_paths(
+            directory.path().join("kushim.db"),
+            directory.path().join("keystore.bin"),
+        );
+        assert!(matches!(
+            app.state,
+            UiState::Locked {
+                form: LockForm::Create { .. },
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn an_archive_that_is_there_opens_on_unlock() {
+        let directory = TempDir::new().unwrap();
+        let database = directory.path().join("kushim.db");
+        let keystore = directory.path().join("keystore.bin");
+        Session::create(&database, &keystore, "passphrase").unwrap();
+
+        let app = KushimApp::with_paths(&database, &keystore);
+        assert!(matches!(
+            app.state,
+            UiState::Locked {
+                form: LockForm::Unlock { .. },
+                ..
+            }
+        ));
     }
 
     /// The folder watcher's folder and switch are remembered through the window's
