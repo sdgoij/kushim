@@ -14,10 +14,12 @@ import java.time.LocalDate
  * The §6.8 timings the application controls, measured on the device.
  *
  * This creates its own archive, so it replaces whatever is in the app's storage
- * on the device it runs on. The ceilings are wide on purpose: they are
- * regression guards on an emulator, while the design's numbers (2.5 s unlock,
- * 1.5 s issue) are for a mid-range phone and are read from the log line rather
- * than asserted here.
+ * on the device it runs on. The numbers are written to the log and are read from
+ * there; nothing here asserts on them. A shared emulator's speed is not a
+ * regression signal — this test failed at 2 554 ms against a 2 000 ms ceiling on
+ * a run where nothing in the code had changed — so the design's numbers (2.5 s
+ * unlock, 1.5 s issue) stay in `mobile-design.md` and in the log line, and a
+ * budget that fails the build belongs on a machine whose speed is known.
  */
 @RunWith(AndroidJUnit4::class)
 class BudgetTest {
@@ -91,10 +93,6 @@ class BudgetTest {
                 TAG,
                 "create=${createMillis}ms unlock=${unlockMillis}ms issue=${issueMillis}ms preview=${previewMillis}ms",
             )
-
-            assertTrue("unlock took $unlockMillis ms", unlockMillis < 5_000)
-            assertTrue("issue took $issueMillis ms", issueMillis < 5_000)
-            assertTrue("preview took $previewMillis ms", previewMillis < 2_000)
         } finally {
             runCatching { lockArchive() }
             MobileArchiveHost.detach()
