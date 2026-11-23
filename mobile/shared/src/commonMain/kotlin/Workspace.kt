@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

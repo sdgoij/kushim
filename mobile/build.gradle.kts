@@ -50,7 +50,7 @@ val uniffiBindings = tasks.register<Exec>("uniffiBindings") {
     commandLine(
         cargoCommand + listOf(
             "run", "-p", "ffi", "--features", "cli", "--bin", "uniffi-bindgen", "--",
-            "generate", "--library", "target/aarch64-linux-android/release/libbonkc.so",
+            "generate", "--library", "target/aarch64-linux-android/release/libkushim.so",
             "--language", "kotlin", "--out-dir", "mobile/shared/build/generated/uniffi",
         ),
     )

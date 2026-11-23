@@ -1522,7 +1522,7 @@ fn sample_artefacts() -> Result<(String, Vec<u8>), AppError> {
 }
 
 fn sample_seller() -> Party {
-    let mut party = Party::new("Bonk Demo BV", Address::new("Amsterdam", CountryCode::NL));
+    let mut party = Party::new("Kushim Demo BV", Address::new("Amsterdam", CountryCode::NL));
     party.vat_id = Some("NL123456789B01".to_owned());
     party.kvk_number = Some("12345678".to_owned());
     party
@@ -1725,7 +1725,10 @@ mod tests {
             }
         }
 
-        assert!(device_ready("/tmp/bonk/keystore.bin".to_owned(), Box::new(Unreadable)));
+        assert!(device_ready(
+            "/tmp/kushim/keystore.bin".to_owned(),
+            Box::new(Unreadable)
+        ));
     }
 
     #[test]
@@ -1745,24 +1748,25 @@ mod tests {
     #[test]
     fn artefact_hashes_match_the_golden_values() {
         let hashes = artefact_hashes().expect("the sample invoice builds");
+        // The hashes move with the document: the renderer identity is written
+        // into the UBL and into the PDF metadata, so renaming the product changes
+        // both artefacts.
         assert_eq!(
             hashes.ubl_sha256,
-            "7d7f70eb279208887daae6a0099bf1c61359a709f7fc0e6fb565ea7e9c5f7020"
+            "a0e8eab64ed7ba9862d6a928c3f70dbd2c010dc0f3df362ac084124e654c352e"
         );
-        // The PDF moved when the bundled font did: Noto Serif CJK's CFF subset is
-        // smaller than DejaVu's TrueType one, so the sample shrank by 10 kB.
         assert_eq!(
             hashes.pdf_sha256,
-            "0f6aede0989aeecdd72841b0faf8b73f5b6b21d07ce2d4eeaab9f682f3ca0351"
+            "15351eadfc2f945eaa501ff48a474735d196ac4e4aa08171618ade9120615331"
         );
-        assert_eq!(hashes.ubl_len, 4305);
-        assert_eq!(hashes.pdf_len, 15527);
+        assert_eq!(hashes.ubl_len, 4309);
+        assert_eq!(hashes.pdf_len, 15936);
     }
 
     #[test]
     fn an_archive_opens_summarises_and_closes() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
 
         assert!(!archive_exists(database.clone(), keystore.clone()));
@@ -1791,7 +1795,7 @@ mod tests {
     #[test]
     fn a_backup_and_a_recovery_key_come_out_of_the_archive() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
         let archive = Archive::create(database, keystore, "passphrase".to_owned()).expect("a new archive");
 
@@ -1809,7 +1813,7 @@ mod tests {
     #[test]
     fn a_staged_pair_replaces_the_archive() {
         let source = tempfile::TempDir::new().expect("a temporary directory");
-        let source_database = source.path().join("bonk.db").display().to_string();
+        let source_database = source.path().join("kushim.db").display().to_string();
         let source_keystore = source.path().join("keystore.bin").display().to_string();
         let opened = Archive::create(
             source_database.clone(),
@@ -1821,14 +1825,14 @@ mod tests {
         opened.lock();
 
         let target = tempfile::TempDir::new().expect("a temporary directory");
-        let database = target.path().join("bonk.db").display().to_string();
+        let database = target.path().join("kushim.db").display().to_string();
         let keystore = target.path().join("keystore.bin").display().to_string();
         let empty =
             Archive::create(database.clone(), keystore.clone(), "passphrase".to_owned()).expect("a target archive");
         empty.lock();
 
         let staging = tempfile::TempDir::new().expect("a staging directory");
-        let staged_database = staging.path().join("bonk.db");
+        let staged_database = staging.path().join("kushim.db");
         let staged_keystore = staging.path().join("keystore.bin");
         std::fs::copy(&source_database, &staged_database).expect("a copy of the database");
         std::fs::copy(&source_keystore, &staged_keystore).expect("a copy of the key");
@@ -1861,7 +1865,7 @@ mod tests {
     #[test]
     fn a_draft_round_trips_through_the_ffi() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
         let archive = Archive::create(database, keystore, "passphrase".to_owned()).expect("a new archive");
 
@@ -1926,7 +1930,7 @@ mod tests {
     #[test]
     fn a_customer_round_trips_through_the_ffi() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
         let archive = Archive::create(database, keystore, "passphrase".to_owned()).expect("a new archive");
 
@@ -1962,7 +1966,7 @@ mod tests {
     #[test]
     fn the_seller_round_trips_through_the_ffi() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
         let archive = Archive::create(database, keystore, "passphrase".to_owned()).expect("a new archive");
 
@@ -1999,7 +2003,7 @@ mod tests {
         store::CustomerRecord,
     ) {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
         let archive = Archive::create(database, keystore, "passphrase".to_owned()).expect("a new archive");
 
@@ -2223,7 +2227,7 @@ mod tests {
     #[test]
     fn a_recovery_key_resets_the_passphrase() {
         let directory = tempfile::TempDir::new().expect("a temporary directory");
-        let database = directory.path().join("bonk.db").display().to_string();
+        let database = directory.path().join("kushim.db").display().to_string();
         let keystore = directory.path().join("keystore.bin").display().to_string();
 
         let archive = Archive::create(database.clone(), keystore.clone(), "old".to_owned()).expect("a new archive");

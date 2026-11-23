@@ -21,7 +21,7 @@ Event kinds cover creation, validation, issue, artefact rendering, sending,
 receipts, payments, credits, key rotation, exports, and retention deletion.
 
 The chain head is shown in the UI and included in evidence bundles. A verifier
-recomputes the chain offline (`bonk verify`). Optional AdES signing of the head
+recomputes the chain offline (`kushim verify`). Optional AdES signing of the head
 is supported for users who want a stronger anchor.
 
 ## Consequences

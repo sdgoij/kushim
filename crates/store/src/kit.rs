@@ -82,8 +82,8 @@ fn note(archive: &Path, stamp: &str) -> String {
     let name = archive
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_else(|| "bonk.db".to_owned());
-    let body = r#"Bonk recovery kit
+        .unwrap_or_else(|| "kushim.db".to_owned());
+    let body = r#"Kushim recovery kit
 =================
 
 Written: STAMP
@@ -99,9 +99,9 @@ Anyone who has both this file and the credential has the archive.
 
 To restore:
   1. Put a database backup next to this file, named as the application expects
-     (for example bonk.db).
+     (for example kushim.db).
   2. Open it with this keystore, or check it first:
-       bonk verify --db bonk.db --keystore keystore.bin
+       kushim verify --db kushim.db --keystore keystore.bin
   3. Enter the passphrase that was current when this kit was written.
 
 This kit holds no passphrase and no recovery key. If both are lost, the archive
@@ -128,7 +128,7 @@ mod tests {
     fn a_kit_holds_the_key_and_the_steps() {
         let archive_dir = TempDir::new().unwrap();
         let store = keystore_in(&archive_dir);
-        let archive = archive_dir.path().join("bonk.db");
+        let archive = archive_dir.path().join("kushim.db");
         let kit = TempDir::new().unwrap();
 
         let report = write(store.path(), &archive, kit.path(), "2026-11-03T12:00:00Z").unwrap();
@@ -137,7 +137,7 @@ mod tests {
 
         let steps = fs::read_to_string(&report.instructions).unwrap();
         assert!(steps.contains("another medium"), "{steps}");
-        assert!(steps.contains("bonk.db"), "{steps}");
+        assert!(steps.contains("kushim.db"), "{steps}");
         assert!(steps.contains("2026-11-03T12:00:00Z"), "{steps}");
     }
 
@@ -145,7 +145,7 @@ mod tests {
     fn a_kit_refuses_to_sit_beside_the_archive() {
         let dir = TempDir::new().unwrap();
         let store = keystore_in(&dir);
-        let archive = dir.path().join("bonk.db");
+        let archive = dir.path().join("kushim.db");
 
         let error = write(store.path(), &archive, dir.path().join("kit"), "2026-11-03T12:00:00Z").unwrap_err();
         assert!(matches!(error, StoreError::Rejected(_)), "{error}");

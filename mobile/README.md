@@ -47,7 +47,7 @@ cd mobile
 
 `-Pnative` wires the root tasks into the build:
 
-- `cargoNdk` builds `libbonkc.so` for `arm64-v8a` and `x86_64` into
+- `cargoNdk` builds `libkushim.so` for `arm64-v8a` and `x86_64` into
   `androidApp/src/main/jniLibs`. On Windows it runs through
   `tools/cargo-android.sh`, which gives OpenSSL the Unix-path Perl it needs.
 - `uniffiBindings` generates the Kotlin bindings from the arm64 library into
@@ -64,7 +64,7 @@ The equivalent manual steps, from the repository root, are:
 ```sh
 cargo build -p ffi
 cargo run -p ffi --features cli --bin uniffi-bindgen -- \
-  generate target/debug/bonkc.dll --language kotlin --out-dir target/uniffi-kotlin
+  generate target/debug/kushim.dll --language kotlin --out-dir target/uniffi-kotlin
 
 mkdir -p mobile/shared/build/generated/uniffi
 cp -r target/uniffi-kotlin/uniffi mobile/shared/build/generated/uniffi/
@@ -73,8 +73,8 @@ cargo ndk --platform 26 -t x86_64 -t arm64-v8a \
   -o mobile/androidApp/src/main/jniLibs build --release -p ffi
 ```
 
-On Linux/macOS the host cdylib is `target/debug/libbonkc.so` or
-`target/debug/libbonkc.dylib`; use that path for `uniffi-bindgen`.
+On Linux/macOS the host cdylib is `target/debug/libkushim.so` or
+`target/debug/libkushim.dylib`; use that path for `uniffi-bindgen`.
 
 ## Lock and create flow
 
@@ -136,9 +136,9 @@ which keeps the root, file, database, shared-preference, and external directorie
 out of both cloud backup and device transfer. Restore is an explicit export, not
 a platform backup.
 
-The **Canary scan** diagnostic reads `bonk.db`, its `-wal`, and `keystore.bin` and
+The **Canary scan** diagnostic reads `kushim.db`, its `-wal`, and `keystore.bin` and
 looks for the `SQLite format 3` magic in each. On the API 37 x86_64 AVD it
-reported `bonk.db: clean (516096 bytes), bonk.db-wal: clean (0 bytes),
+reported `kushim.db: clean (516096 bytes), kushim.db-wal: clean (0 bytes),
 keystore.bin: clean (185 bytes)`.
 
 ## Recovery key

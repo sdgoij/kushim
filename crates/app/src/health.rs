@@ -206,7 +206,7 @@ mod tests {
     fn session() -> (tempfile::TempDir, Session) {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )

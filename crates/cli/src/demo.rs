@@ -3,7 +3,7 @@
 //! The generator writes through the same repository functions the CLI and the
 //! window use, so the archive it produces is an ordinary archive: issued
 //! documents have artefacts and audit events, received documents have payloads
-//! and import records, and `bonk verify` passes on it. Nothing here is a
+//! and import records, and `kushim verify` passes on it. Nothing here is a
 //! back door into the schema.
 //!
 //! The seed is the only source of randomness, and `today` is an input, so the
@@ -21,7 +21,7 @@ use store::{
 };
 
 /// The passphrase used when the caller does not give one.
-pub const DEFAULT_PASSPHRASE: &str = "bonk-demo";
+pub const DEFAULT_PASSPHRASE: &str = "kushim-demo";
 
 const ACTOR: &str = "demo-seed";
 const RENDERER: &str = "syntax-0.1";
@@ -485,7 +485,7 @@ fn seed_books(
     }
 
     // Two kinds of year in one archive: last year finished, this one in progress.
-    // The close is the same one `bonk ledger close-year` performs, so the demo's
+    // The close is the same one `kushim ledger close-year` performs, so the demo's
     // closed year is an ordinary closed year rather than a flag somebody set.
     let closed_year = if close_last_year {
         match finish_last_year(session, owner, today)? {
@@ -529,7 +529,7 @@ fn seed_books(
         bank_lines = report.imported;
     }
 
-    // One rule, pointed at the fee lines, so `bonk ledger bank classify --dry-run`
+    // One rule, pointed at the fee lines, so `kushim ledger bank classify --dry-run`
     // has something to show and the queue has something a person came for. The
     // interest line is deliberately left without one: it is nobody's invoice and
     // no rule's business, which is what the queue is for.
@@ -1442,7 +1442,7 @@ mod tests {
     const PASS: &str = "demo-test-passphrase";
 
     fn create(directory: &std::path::Path) -> Session {
-        Session::create(directory.join("bonk.db"), directory.join("keystore.bin"), PASS).unwrap()
+        Session::create(directory.join("kushim.db"), directory.join("keystore.bin"), PASS).unwrap()
     }
 
     fn owner(session: &Session) -> SellerId {

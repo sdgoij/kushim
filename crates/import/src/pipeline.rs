@@ -415,7 +415,7 @@ mod tests {
     fn database() -> (tempfile::TempDir, Database, SellerId) {
         let dir = tempfile::TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-        let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
         let seller_id = SellerId::new();
         store::insert_seller(
             database.connection(),
@@ -980,7 +980,7 @@ mod tests {
     fn an_import_without_a_seller_is_reported() {
         let dir = tempfile::TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-        let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
         let error = import_bytes(
             &database,
             SellerId::new(),

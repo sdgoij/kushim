@@ -136,13 +136,13 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
 
         let root = tempfile::tempdir().unwrap();
-        let database = root.path().join("bonk.db");
+        let database = root.path().join("kushim.db");
         std::fs::write(&database, b"x").unwrap();
-        std::fs::write(root.path().join("bonk.db-wal"), b"x").unwrap();
+        std::fs::write(root.path().join("kushim.db-wal"), b"x").unwrap();
 
         restrict_archive(&database);
 
-        for path in [&database, &root.path().join("bonk.db-wal")] {
+        for path in [&database, &root.path().join("kushim.db-wal")] {
             let mode = std::fs::metadata(path).unwrap().permissions().mode() & 0o777;
             assert_eq!(mode, FILE_MODE);
         }

@@ -1113,7 +1113,7 @@ fn reporting_rate(
     }
     crate::fx::rate_on(conn, seller_id, currency, date)?.ok_or_else(|| {
         StoreError::Rejected(format!(
-            "there is no {base} rate for {currency} on or before {date}; import a rate file (`bonk ledger fx import <file>`) or set one (`bonk ledger fx set --currency {currency} --date {date} --rate <{base} per {currency}>`)"
+            "there is no {base} rate for {currency} on or before {date}; import a rate file (`kushim ledger fx import <file>`) or set one (`kushim ledger fx set --currency {currency} --date {date} --rate <{base} per {currency}>`)"
         ))
     })
 }

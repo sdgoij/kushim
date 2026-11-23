@@ -16,7 +16,7 @@ const NOW: &str = "2026-10-27T12:00:00Z";
 fn fixture() -> (TempDir, Database) {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-    let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
     (dir, database)
 }
 

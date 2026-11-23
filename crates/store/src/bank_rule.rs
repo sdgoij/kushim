@@ -332,7 +332,7 @@ pub fn classify_one(
     } else {
         let rate = crate::fx::rate_on(conn, seller_id, line.currency, line.booking_date)?.ok_or_else(|| {
             StoreError::Rejected(format!(
-                "transaction {transaction_id} is in {}, and there is no {reporting} rate on or before {}; import a rate file (`bonk ledger fx import <file>`) or set one (`bonk ledger fx set --currency {} --date {} --rate <{reporting} per {}>`)",
+                "transaction {transaction_id} is in {}, and there is no {reporting} rate on or before {}; import a rate file (`kushim ledger fx import <file>`) or set one (`kushim ledger fx set --currency {} --date {} --rate <{reporting} per {}>`)",
                 line.currency,
                 line.booking_date,
                 line.currency,

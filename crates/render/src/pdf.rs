@@ -62,8 +62,8 @@ pub(crate) fn write_with(document: &Layout, attachment: Option<&Attachment<'_>>)
     };
     let mut metadata = Metadata::new()
         .title(document.title.clone())
-        .creator("bonk".to_owned())
-        .producer(format!("bonk {}", crate::RENDERER_VERSION));
+        .creator("kushim".to_owned())
+        .producer(format!("kushim {}", crate::RENDERER_VERSION));
     if let Some(created) = document.created {
         metadata = metadata.creation_date(DateTime::new(created.year).month(created.month).day(created.day));
     }

@@ -4,9 +4,9 @@
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
-        android:label="Bonk"
+        android:label="Kushim"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Bonk">
+        android:theme="@style/Theme.Kushim">
         <activity
             android:name=".MainActivity"
             android:exported="true"

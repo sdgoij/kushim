@@ -17,7 +17,7 @@ pub mod theme;
 mod workspace;
 
 /// Marks the context as styled, so installing is not repeated every frame.
-const THEME_INSTALLED: &str = "bonk.theme-installed";
+const THEME_INSTALLED: &str = "kushim.theme-installed";
 
 use std::path::PathBuf;
 
@@ -35,8 +35,8 @@ pub use application::{
 
 /// Default locations under the platform data directory.
 pub fn default_paths() -> (PathBuf, PathBuf) {
-    let base = data_dir().join("Bonk");
-    (base.join("bonk.db"), base.join("keystore.bin"))
+    let base = data_dir().join("Kushim");
+    (base.join("kushim.db"), base.join("keystore.bin"))
 }
 
 /// Where the folder watcher's settings are kept in the window's storage.
@@ -118,7 +118,7 @@ enum LockForm {
 }
 
 /// The egui application.
-pub struct BonkApp {
+pub struct KushimApp {
     database_path: String,
     keystore_path: String,
     state: UiState,
@@ -140,7 +140,7 @@ pub struct BonkApp {
     watch_enabled: bool,
 }
 
-impl Default for BonkApp {
+impl Default for KushimApp {
     fn default() -> Self {
         let (database, keystore) = default_paths();
         let keystore_path = keystore.display().to_string();
@@ -184,7 +184,7 @@ enum Action {
     ChooseKeystore,
 }
 
-impl BonkApp {
+impl KushimApp {
     /// Creates the app with its default paths.
     pub fn new() -> Self {
         Self::default()
@@ -618,7 +618,7 @@ fn path_field(ui: &mut egui::Ui, path: &mut String, browse: &str) -> bool {
     .inner
 }
 
-impl eframe::App for BonkApp {
+impl eframe::App for KushimApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // A window created outside `run` has not been styled yet; do it once.
         let installed = ui
@@ -822,9 +822,9 @@ pub fn run(database: impl Into<PathBuf>, keystore: impl Into<PathBuf>) -> eframe
         ..Default::default()
     };
     eframe::run_native(
-        "Bonk",
+        "Kushim",
         options,
-        Box::new(move |context| Ok(Box::new(BonkApp::new_with_context(context, database, keystore)))),
+        Box::new(move |context| Ok(Box::new(KushimApp::new_with_context(context, database, keystore)))),
     )
 }
 
@@ -842,7 +842,7 @@ mod tests {
     #[test]
     fn create_then_unlock_round_trips() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
 
         {
@@ -861,7 +861,7 @@ mod tests {
     fn a_session_writes_a_verified_backup() {
         let dir = TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -877,7 +877,7 @@ mod tests {
     #[test]
     fn create_refuses_to_overwrite() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         Session::create(&database, &keystore, "passphrase").unwrap();
         assert!(Session::create(&database, &keystore, "passphrase").is_err());
@@ -886,11 +886,11 @@ mod tests {
     #[test]
     fn a_wrong_passphrase_stays_for_a_retry_and_a_used_buffer_is_wiped() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         Session::create(&database, &keystore, "buffer-canary").unwrap();
 
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             database_path: database.display().to_string(),
             keystore_path: keystore.display().to_string(),
             state: UiState::Locked {
@@ -938,7 +938,7 @@ mod tests {
 
     #[test]
     fn a_creation_without_a_passphrase_does_not_start() {
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             state: UiState::Locked {
                 form: LockForm::Unlock {
                     passphrase: "   ".to_owned(),
@@ -962,10 +962,10 @@ mod tests {
     #[test]
     fn a_new_archive_is_confirmed_before_it_is_written() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
 
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             database_path: database.display().to_string(),
             keystore_path: keystore.display().to_string(),
             state: UiState::Locked {
@@ -1022,7 +1022,7 @@ mod tests {
 
     #[test]
     fn backing_out_of_a_creation_wipes_the_confirmation() {
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             state: UiState::Locked {
                 form: LockForm::Create {
                     passphrase: "first-canary".to_owned(),
@@ -1047,7 +1047,7 @@ mod tests {
     #[test]
     fn a_recovery_key_from_the_app_opens_the_archive() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let passphrase = "correct horse battery staple";
         let session = Session::create(&database, &keystore, passphrase).unwrap();
@@ -1077,7 +1077,7 @@ mod tests {
     #[test]
     fn changing_the_passphrase_from_the_app_keeps_the_archive_openable() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let session = Session::create(&database, &keystore, "old passphrase").unwrap();
 
@@ -1093,7 +1093,7 @@ mod tests {
     #[test]
     fn a_forgotten_passphrase_is_reset_from_the_lock_screen() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let forgotten = "correct horse battery staple";
         let replacement = "a fresh and rather long phrase";
@@ -1103,7 +1103,7 @@ mod tests {
             session.add_recovery_key(forgotten).unwrap()
         };
 
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             database_path: database.display().to_string(),
             keystore_path: keystore.display().to_string(),
             state: UiState::Locked {
@@ -1143,7 +1143,7 @@ mod tests {
     #[test]
     fn a_wrong_recovery_key_leaves_the_archive_alone() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let passphrase = "correct horse battery staple";
 
@@ -1152,7 +1152,7 @@ mod tests {
             session.add_recovery_key(passphrase).unwrap();
         }
 
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             database_path: database.display().to_string(),
             keystore_path: keystore.display().to_string(),
             state: UiState::Locked {
@@ -1192,7 +1192,7 @@ mod tests {
 
     #[test]
     fn backing_out_of_a_reset_returns_to_the_unlock_form() {
-        let mut app = BonkApp {
+        let mut app = KushimApp {
             state: UiState::Locked {
                 form: LockForm::Reset {
                     recovery_key: "key-canary".to_owned(),
@@ -1219,7 +1219,7 @@ mod tests {
     #[test]
     fn a_remembered_device_opens_the_archive_without_the_passphrase() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let passphrase = "correct horse battery staple";
         let session = Session::create(&database, &keystore, passphrase).unwrap();
@@ -1252,7 +1252,7 @@ mod tests {
     #[test]
     fn forgetting_the_device_removes_the_route() {
         let dir = TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let keystore = dir.path().join("keystore.bin");
         let passphrase = "correct horse battery staple";
         let session = Session::create(&database, &keystore, passphrase).unwrap();
@@ -1282,7 +1282,7 @@ mod tests {
     #[test]
     fn the_app_uses_the_injected_device_store() {
         let directory = TempDir::new().unwrap();
-        let database = directory.path().join("bonk.db");
+        let database = directory.path().join("kushim.db");
         let keystore = directory.path().join("keystore.bin");
         let passphrase = "correct horse battery staple";
         let store = store::device::MemoryStore::default();
@@ -1291,7 +1291,7 @@ mod tests {
             .remember_device(passphrase, &store)
             .unwrap();
 
-        let mut app = BonkApp::with_paths(&database, &keystore).with_device(Box::new(store));
+        let mut app = KushimApp::with_paths(&database, &keystore).with_device(Box::new(store));
         assert!(app.device_ready, "the injected store holds the key");
 
         app.unlock_with_device();
@@ -1302,7 +1302,7 @@ mod tests {
     fn default_paths_are_under_one_directory() {
         let (database, keystore) = default_paths();
         assert_eq!(database.parent(), keystore.parent());
-        assert_eq!(database.file_name().unwrap(), "bonk.db");
+        assert_eq!(database.file_name().unwrap(), "kushim.db");
         assert_eq!(keystore.file_name().unwrap(), "keystore.bin");
     }
 
@@ -1312,7 +1312,7 @@ mod tests {
     fn the_window_starts_at_the_paths_it_was_given() {
         let database = PathBuf::from("elsewhere").join("archive.db");
         let keystore = PathBuf::from("elsewhere").join("other-key.bin");
-        let app = BonkApp::with_paths(database.clone(), keystore.clone());
+        let app = KushimApp::with_paths(database.clone(), keystore.clone());
         assert_eq!(app.database_path, database.display().to_string());
         assert_eq!(app.keystore_path, keystore.display().to_string());
     }
@@ -1376,7 +1376,7 @@ mod tests {
     #[test]
     fn the_window_keeps_egui_memory_out_of_its_settings_file() {
         use eframe::App as _;
-        assert!(!BonkApp::default().persist_egui_memory());
+        assert!(!KushimApp::default().persist_egui_memory());
     }
 
     /// A template beside the archive is one a document can be drawn with, and the
@@ -1384,7 +1384,7 @@ mod tests {
     #[test]
     fn an_archive_template_is_loaded_and_digested() {
         let dir = tempfile::TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let (templates, problems) = crate::load_templates(&database);
         assert!(templates.is_empty(), "no templates directory means the built-in layout");
         assert!(problems.is_empty(), "{problems:?}");
@@ -1422,7 +1422,7 @@ mod tests {
     #[test]
     fn a_broken_template_says_so() {
         let dir = tempfile::TempDir::new().unwrap();
-        let database = dir.path().join("bonk.db");
+        let database = dir.path().join("kushim.db");
         let directory = dir.path().join("templates");
         std::fs::create_dir_all(&directory).unwrap();
         std::fs::write(directory.join("default.json"), "{ this is not json").unwrap();

@@ -345,7 +345,7 @@ impl Archive {
    `pdf_data`, `customers`, `export`, `health`, `templates`, `strength`).
 2. Make `app` and `cli` delegate; run `just gate`; compare CLI output before and
    after on a demo archive.
-3. Move `Session` to `application::Archive`; make `BonkApp` hold an `Archive` and
+3. Move `Session` to `application::Archive`; make `KushimApp` hold an `Archive` and
    a `DeviceStore` implementation instead of hardcoding `store::device::Keychain`.
 4. Add integration tests for the extracted use cases (create/unlock/issue/
    backup/recovery), using `MemoryStore` and `KdfParams::TEST`.
@@ -367,7 +367,7 @@ public name the domain word and the two types unambiguous. The boundary error is
 internally when both are in scope.
 
 The directory and package are `ffi`, matching the workspace's unprefixed naming
-convention. The native library is `bonkc`, so the build emits `libbonkc.so` rather
+convention. The native library is `kushim`, so the build emits `libkushim.so` rather
 than a `libffi.so` that could be confused with the system libffi. `crates/uniffi`
 was rejected because it would shadow the `uniffi` dependency.
 
@@ -376,7 +376,7 @@ was rejected because it would shadow the `uniffi` dependency.
 name = "ffi"
 
 [lib]
-name = "bonkc"
+name = "kushim"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
@@ -385,8 +385,8 @@ uniffi = { version = "0.32.2", features = ["cli"] }
 thiserror.workspace = true
 ```
 
-- `cdylib` for Android (`libbonkc.so`), `staticlib` for the iOS
-  XCFramework (`libbonkc.a`), `lib` so host tests can call it without a dynamic
+- `cdylib` for Android (`libkushim.so`), `staticlib` for the iOS
+  XCFramework (`libkushim.a`), `lib` so host tests can call it without a dynamic
   load.
 - `uniffi::setup_scaffolding!()` in a dedicated module.
 - UniFFI 0.32.2's Kotlin generator produces a property named after each error
@@ -514,8 +514,8 @@ pub trait DeviceSecretStore: Send + Sync {
   not ship a plaintext file-backed implementation; a caller that wants one can
   provide it and accept the risk explicitly.
 - The C ABI is versioned with the crate. Bump the library version and regenerate
-  the bindings together; a stale `libbonkc.so` must not meet new bindings.
-- Python packaging (a wheel containing `libbonkc.so`) is a later packaging task.
+  the bindings together; a stale `libkushim.so` must not meet new bindings.
+- Python packaging (a wheel containing `libkushim.so`) is a later packaging task.
   It must not introduce mobile-only assumptions into the API.
 - No `SAF`, `Activity`, or `UIViewController` concepts belong in this crate;
   platform integration stays in the host language.
@@ -685,7 +685,7 @@ mobile/
   androidApp/                      thin com.android.application module
     src/main/AndroidManifest.xml
     src/main/kotlin/...            MainActivity and Android-only wiring
-    src/main/jniLibs/...           libbonkc.so per ABI
+    src/main/jniLibs/...           libkushim.so per ABI
   iosApp/                          Xcode project (when M11.8 starts)
 ```
 
@@ -855,7 +855,7 @@ file. No `INTERNET` permission in v1. No analytics SDK.
 
 ### 6.7 Design system, localization, accessibility
 
-- Material 3 tokens; a BONK palette shared with the desktop theme. Dynamic color
+- Material 3 tokens; a KUSHIM palette shared with the desktop theme. Dynamic color
   off by default so the brand and contrast stay predictable.
 - System UI fonts (`FontFamily.Default`), not bundled fonts. The PDF keeps its
   own bundled font; UI and document typography are separate decisions.
@@ -1031,7 +1031,7 @@ unlocked.
 
 ### 7.5 Backup, restore, and destructive actions
 
-The archive is **two files**: `bonk.db` (encrypted database) and `keystore.bin`
+The archive is **two files**: `kushim.db` (encrypted database) and `keystore.bin`
 (wrapped DEK). A backup is the database; the recovery kit is the keystore. This
 split is a security feature and must not be hidden.
 
@@ -1040,19 +1040,19 @@ split is a security feature and must not be hidden.
   and delete the cache copy. Preflight free space.
 - **Restore:** pick both files, copy them into app-private storage, verify the
   chain, then unlock. The onboarding flow must explain that a backup alone is not
-  enough. A single-file `.bonk` container is a possible later convenience, but it
+  enough. A single-file `.kushim` container is a possible later convenience, but it
   is a new format and needs an ADR.
 - **Delete archive:** verified backup, typed confirmation, audit event. The OS
   "clear app data" action cannot be prevented; the privacy note says so.
 - **Cloud backup:** excluded. The user can still put the encrypted backup in a
   cloud folder deliberately; that is their choice and the file is encrypted.
 
-**Review (2026-11-08).** Keep the two-file split. A backup is `bonk.db` and the
+**Review (2026-11-08).** Keep the two-file split. A backup is `kushim.db` and the
 recovery kit is `keystore.bin`. The export writes a `VACUUM INTO` copy to a cache
 path, reopens it read-only, and checks the integrity and the audit chain before
 streaming it to the destination and deleting the cache; the restore copies both
 files into app-private storage and verifies again before unlock. A single-file
-`.bonk` container stays a later convenience behind an ADR. The export and restore
+`.kushim` container stays a later convenience behind an ADR. The export and restore
 screens land with the import and settings milestone; this review fixes the format
 and the safety checks, not the UI.
 
@@ -1163,7 +1163,7 @@ val uniffi = tasks.register<Exec>("uniffiBindings") {
     workingDir = repoRoot
     commandLine(
         "cargo", "run", "-p", "ffi", "--bin", "uniffi-bindgen", "--",
-        "generate", "--library", "target/aarch64-linux-android/release/libbonkc.so",
+        "generate", "--library", "target/aarch64-linux-android/release/libkushim.so",
         "--language", "kotlin", "--out-dir", "mobile/shared/build/generated/uniffi",
     )
 }
@@ -1235,7 +1235,7 @@ build through `run-as`, because Android keeps app data private. The device's
 previous archive is kept in `files/archive.bak`, a stale write-ahead log is
 removed so it cannot be replayed over the new database, and the app is started
 once when its storage is not readable yet, which covers a fresh install. The
-passphrase is `bonk-demo`; a locked device stops the script with a message,
+passphrase is `kushim-demo`; a locked device stops the script with a message,
 since its app storage is encrypted until it is unlocked. An unavailable serial
 prints the attached devices and, when exactly one is attached, the serial to use.
 
@@ -1378,7 +1378,7 @@ single place to update progress; the tables stay as the plan.
 - [x] Two-module `shared` + `androidApp` split, using `com.android.kotlin.multiplatform.library`; the AGP 9 compatibility flags are gone
 - [x] Android archive probe on API 37 x86_64: `create=ok schema=17 locked open=ok drafts=0`; golden artefact hashes unchanged
 - [x] Import service (`application::import`) wraps bytes and files; `app` and `cli` call it for received documents
-- [x] `BonkApp` owns a `Box<dyn DeviceStore>`; `Workspace::with_device` and `ui_with_device` take the injected store
+- [x] `KushimApp` owns a `Box<dyn DeviceStore>`; `Workspace::with_device` and `ui_with_device` take the injected store
 - [x] Android cross-build job (`mobile-cross`, now folded into `android`) with NDK r30, cargo-ndk, and a symbol check
 - [x] DTOs frozen: `Summary`, `DraftDto`, `DraftLineDto`, `FindingDto`, `DocumentSummary`, `IssueOutcome`
 
@@ -1454,9 +1454,9 @@ Match supplier opens the customer list and records the decision. Approve and Mar
 
 The Backup screen exports the two halves. A backup is copied into the app's cache with `VACUUM INTO`, checked there by reopening it read-only and recomputing the audit chain, then streamed in chunks to the destination the user picks; the cache copy goes once the write returns. The screen refuses to start when the cache volume cannot hold about twice the archive, rather than failing midway. A recovery kit writes the keystore and `RECOVERY.txt` together into a folder the user picks through the system tree picker, because a key without the note that explains it is not a kit.
 
-Run on a device: the exported copy verified on the host with `bonk verify-backup` against the same keystore, reporting 787 audit events and a matching chain head, and the kit's `keystore.bin` hashed identically to the archive's own.
+Run on a device: the exported copy verified on the host with `kushim verify-backup` against the same keystore, reporting 787 audit events and a matching chain head, and the kit's `keystore.bin` hashed identically to the archive's own.
 
-A restore takes both picked files into app-private storage, unlocks that pair with the passphrase the user supplies and runs the whole audit before anything moves. Only then are the current files renamed aside as `bonk.db.previous` and `keystore.bin.previous` and the staged pair moved in, so a wrong file or a wrong passphrase leaves the archive exactly as it was; the journal SQLite would otherwise replay over the restored file is removed first. The restored archive records an `archive_restored` event and the app opens it again, so the dashboard carries on with the restored counts.
+A restore takes both picked files into app-private storage, unlocks that pair with the passphrase the user supplies and runs the whole audit before anything moves. Only then are the current files renamed aside as `kushim.db.previous` and `keystore.bin.previous` and the staged pair moved in, so a wrong file or a wrong passphrase leaves the archive exactly as it was; the journal SQLite would otherwise replay over the restored file is removed first. The restored archive records an `archive_restored` event and the app opens it again, so the dashboard carries on with the restored counts.
 
 Run on a device: a pair of the wrong files was refused with the keystore message and the archive still held an edit made after the backup was taken; picking the real pair restored the earlier state, left both `.previous` files beside it, and put the restore in the chain.
 
@@ -1493,7 +1493,7 @@ The wide editor's right pane also draws the draft itself. The page comes from th
 
 Run on the tablet with a seeded draft: the preview appeared in the right pane above the totals and the issue action, with the fields in the left pane. A host test asserts that a preview is a PDF and that it leaves the register empty and no draft saved, and that a draft with no lines still renders.
 
-The colours follow the system light or dark choice through `BonkTheme`, and the window behind Compose is themed the same way in `values` and `values-night`, so the first frame does not flash the wrong shade. A fact whose label and value shared a fixed 120 dp column now stacks them above 1.5 font scale instead of clipping. Layout direction comes from the locale, so a right-to-left configuration mirrors the rail, the two-pane order and the text fields without a second layout.
+The colours follow the system light or dark choice through `KushimTheme`, and the window behind Compose is themed the same way in `values` and `values-night`, so the first frame does not flash the wrong shade. A fact whose label and value shared a fixed 120 dp column now stacks them above 1.5 font scale instead of clipping. Layout direction comes from the locale, so a right-to-left configuration mirrors the rail, the two-pane order and the text fields without a second layout.
 
 Run on a phone emulator at 200% font scale: the unlock form, dashboard, register rows, and a document's facts all stayed legible, and the facts stacked label over value as intended. Run with the app locale set to `ar` at medium width: the rail moved to the right side, the dashboard's button columns swapped, and the customer list sat to the right of the detail pane. The packaged APK carries both day and night variants of the window theme (checked with `aapt2`), and the app unlocked and redrew in night mode without a runtime error in logcat; the colours themselves cannot be inspected on the emulator because the window refuses screenshots.
 
@@ -1503,7 +1503,7 @@ The width bands are pinned by a host test that fails if a threshold moves, and t
 
 `ShellScreenshotTest` draws the rail and the dashboard, which is the one archive screen that takes its data as parameters and so can be drawn without opening an archive, at 360, 700 and 1280 dp wide. It draws at one pixel per dp and pins the light palette, so the images do not depend on the device's density or its day/night choice. The test compares every pixel against the committed image and allows a fifth of a percent to differ, which covers antialiasing without hiding a moved control. A missing image fails the test and writes the one the device drew; `just mobile-screenshots [serial]` runs the comparison and `just mobile-screenshots-update [serial]` pulls regenerated images into `assets/screenshots`. The three images show the phone without a rail, and the medium and tablet windows with the rail and the dashboard's two columns.
 
-`BudgetTest` creates its own archive, fills a seller and a customer, saves a draft with one line, and times the calls the design budgets: create, unlock (Argon2 and the database open), issue (validation, UBL and PDF), and the draft preview render. `just mobile-budgets [serial]` runs it and the log line under `BonkBudget` carries the figures; `just mobile-cold-start [serial]` installs the release build and reports what the platform says a cold start costs. On the API 33 tablet emulator, whose host is a desktop and so is not the design's mid-range phone: cold start to the lock screen 926 ms, create 283 ms, unlock 112 ms, issue 21 ms, preview 3 ms. The assertions only refuse a start or a call that takes five seconds, so they catch a gross regression without pretending to be the device measurement; scroll jank, RSS and the per-ABI download size are still unmeasured.
+`BudgetTest` creates its own archive, fills a seller and a customer, saves a draft with one line, and times the calls the design budgets: create, unlock (Argon2 and the database open), issue (validation, UBL and PDF), and the draft preview render. `just mobile-budgets [serial]` runs it and the log line under `KushimBudget` carries the figures; `just mobile-cold-start [serial]` installs the release build and reports what the platform says a cold start costs. On the API 33 tablet emulator, whose host is a desktop and so is not the design's mid-range phone: cold start to the lock screen 926 ms, create 283 ms, unlock 112 ms, issue 21 ms, preview 3 ms. The assertions only refuse a start or a call that takes five seconds, so they catch a gross regression without pretending to be the device measurement; scroll jank, RSS and the per-ABI download size are still unmeasured.
 
 The release APK carries `assets/dexopt/baseline.prof` (7.3 KB) merged from the libraries, and declares `ProfileInstaller`'s initializer and receiver, so an install that did not come through Play still gets the profile on first run; the app now names `androidx.profileinstaller` as its dependency rather than inheriting it. The app's own startup methods are not in that profile, because generating one needs a macrobenchmark run on a rootable or Play-managed device.
 
@@ -1513,9 +1513,9 @@ Run on the API 33 tablet emulator: the app started, unlocked, and laid the regis
 
 Run on an API 33 AVD with a 1280x800 dp window: the images matched on a second run. The same test cannot run on the API 37 images: the Compose test rule starts Espresso, whose input injection looks up `InputManager.getInstance`, a method API 37 removed, so the run fails before any test body executes.
 
-CI has an `android` job that builds both ABIs with the bindings, runs the shared Kotlin host tests, checks the exported symbol and the page alignment, assembles the debug pair and the release APKs, and guards each per-ABI APK's size at 56 MiB. An `android-instrumented` job installs the x86_64 debug pair on an API 33 tablet emulator and runs the golden artefact hashes and the screenshot images, so a tag cannot publish past a failing device test. A tag's release carries `bonk-android-arm64-v8a.apk` and `bonk-android-x86_64.apk` beside the desktop archives and in `SHA256SUMS`, signed with the debug key until there is a release key.
+CI has an `android` job that builds both ABIs with the bindings, runs the shared Kotlin host tests, checks the exported symbol and the page alignment, assembles the debug pair and the release APKs, and guards each per-ABI APK's size at 56 MiB. An `android-instrumented` job installs the x86_64 debug pair on an API 33 tablet emulator and runs the golden artefact hashes and the screenshot images, so a tag cannot publish past a failing device test. A tag's release carries `kushim-android-arm64-v8a.apk` and `kushim-android-x86_64.apk` beside the desktop archives and in `SHA256SUMS`, signed with the debug key until there is a release key.
 
-**Status 2026-11-16 (the APKs split, because the fonts arrived).** The bundled font pair that makes a CJK invoice possible is 34 MB compressed, and each `libbonkc.so` carries it, so the universal release APK went from 30.5 MB to 90.9 MB and tripped the old 32 MiB guard. The guard was measuring an artefact nobody installs: Play delivers one ABI per device, and the universal APK carries both for a manual install. The build now splits by ABI (`arm64-v8a`, `x86_64`), and the guard measures each split at 56 MiB — roughly twice what a device downloads, which leaves room for a dependency that arrives unnoticed without hiding one that arrives as a font. The instrumented job installs `androidApp-x86_64-debug.apk`, since the emulator is x86_64; the local scripts pick whichever split this host built.
+**Status 2026-11-16 (the APKs split, because the fonts arrived).** The bundled font pair that makes a CJK invoice possible is 34 MB compressed, and each `libkushim.so` carries it, so the universal release APK went from 30.5 MB to 90.9 MB and tripped the old 32 MiB guard. The guard was measuring an artefact nobody installs: Play delivers one ABI per device, and the universal APK carries both for a manual install. The build now splits by ABI (`arm64-v8a`, `x86_64`), and the guard measures each split at 56 MiB — roughly twice what a device downloads, which leaves room for a dependency that arrives unnoticed without hiding one that arrives as a font. The instrumented job installs `androidApp-x86_64-debug.apk`, since the emulator is x86_64; the local scripts pick whichever split this host built.
 
 What TalkBack announces has not been verified: the rows keep Material's clickable semantics, which the screen reader merges and reads as one stop, but there is no way to hear the result here and the uiautomator dump shows the raw view tree rather than the spoken output. A walkthrough on a device is still due.
 
@@ -1548,7 +1548,7 @@ What TalkBack announces has not been verified: the rows keep Material's clickabl
 
 #### M11.8 — iOS (4–6 weeks)
 
-- [ ] `libbonkc.a` XCFramework built
+- [ ] `libkushim.a` XCFramework built
 - [ ] Swift bindings generated
 - [ ] Keychain device store
 - [ ] Document picker, share sheet, PDFKit
@@ -1561,7 +1561,7 @@ What TalkBack announces has not been verified: the rows keep Material's clickabl
 
 - [ ] `armeabi-v7a` if a distributor requires it
 - [ ] F-Droid reproducible build
-- [ ] Single-file `.bonk` restore container
+- [ ] Single-file `.kushim` restore container
 - [ ] Read-only reports (open items, VAT basis)
 - [ ] Sync Phase 2 with sequence leases before multi-device issuing
 - [ ] Print flow
@@ -1605,11 +1605,11 @@ Each needs a decision before the milestone named, not before the whole project.
 5. **Mobile issuing.** Recommendation: allow it for a single device. Multi-device
    issuing waits for sequence leases. Decide before M11.4.
 6. **Restore format.** Recommendation: two-file restore (database + keystore)
-   first; a single `.bonk` container is a later convenience. Decide before
+   first; a single `.kushim` container is a later convenience. Decide before
    M11.5.
 7. **Minimum OS.** Recommendation: Android 8.0 (API 26), iOS 16. Confirm before
    M11.2.
-8. **App/package name.** Decided 2026-11-07: `com.github.sdgoij.bonk` for the
+8. **App/package name.** Decided 2026-11-07: `com.github.sdgoij.kushim` for the
    Gradle namespace and the Play application id. It is declared only in
    `mobile/composeApp/build.gradle.kts`; Kotlin files use the same package.
 9. **F-Droid.** Recommendation: after the Play beta; confirm no Play Services

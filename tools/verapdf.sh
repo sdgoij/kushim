@@ -12,7 +12,7 @@ cd "$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 VERAPDF_DIR=${VERAPDF_DIR:-target/validator/verapdf}
 JAVA_BIN=${JAVA:-java}
 WORK=target/pdfa-validation
-DB=$WORK/bonk.db
+DB=$WORK/kushim.db
 KEY=$WORK/keystore.bin
 OUT=$WORK/out
 PASS=pdfa-validation-gate
@@ -39,12 +39,12 @@ if [ "${1:-}" = "--check-one" ]; then
     exit 1
 fi
 
-if [ -n "${BONK_BIN:-}" ]; then
+if [ -n "${KUSHIM_BIN:-}" ]; then
     :
-elif [ -x target/debug/bonk.exe ]; then
-    BONK_BIN=target/debug/bonk.exe
-elif [ -x target/debug/bonk ]; then
-    BONK_BIN=target/debug/bonk
+elif [ -x target/debug/kushim.exe ]; then
+    KUSHIM_BIN=target/debug/kushim.exe
+elif [ -x target/debug/kushim ]; then
+    KUSHIM_BIN=target/debug/kushim
 else
     echo "error: build the CLI first (cargo build -p cli)" >&2
     exit 1
@@ -135,9 +135,9 @@ mkdir -p "$OUT" "$WORK/templates"
 # the gate covers every level against two templates rather than one.
 cp templates/compact.json "$WORK/templates/compact.json"
 
-"$BONK_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
+"$KUSHIM_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
 seller=$(
-    "$BONK_BIN" seller-add \
+    "$KUSHIM_BIN" seller-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Validation Seller BV" --city Amsterdam \
         --street "Main 1" --postal "1000 AA" --peppol 0106:12345678 \
@@ -145,7 +145,7 @@ seller=$(
         field seller
 )
 customer=$(
-    "$BONK_BIN" customer-add \
+    "$KUSHIM_BIN" customer-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Alpha Customer BV" --city Rotterdam \
         --street "Alpha 1" --postal "3000 AA" --peppol 0106:10000001 |
@@ -164,14 +164,14 @@ issue_level() {
         --line "Consulting|2|50.00|21" \
         --note "Level $level, template ${template:-default}"
     [ -z "$template" ] || set -- "$@" --template "$template"
-    draft=$("$BONK_BIN" "$@" | field draft)
+    draft=$("$KUSHIM_BIN" "$@" | field draft)
     if [ -z "$draft" ]; then
         echo "error: could not create the $level draft" >&2
         exit 1
     fi
     out=$OUT/$level-${template:-default}
     mkdir -p "$out"
-    "$BONK_BIN" issue "$draft" \
+    "$KUSHIM_BIN" issue "$draft" \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --profile "$level" --out "$out" >"$out/issue.log"
     # A layout that was not found falls back to the built-in one, and the gate would
@@ -191,7 +191,7 @@ done
 # A credit note carries BG-3 and a different document type, and a three-line
 # invoice makes the VAT breakdown do some work.
 credit=$(
-    "$BONK_BIN" credit-note 2026-0001 \
+    "$KUSHIM_BIN" credit-note 2026-0001 \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --date 2026-12-15 |
         field "credit note"
@@ -200,12 +200,12 @@ if [ -z "$credit" ]; then
     echo "error: could not create a credit note" >&2
     exit 1
 fi
-"$BONK_BIN" issue "$credit" \
+"$KUSHIM_BIN" issue "$credit" \
     --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
     --out "$OUT/other" >/dev/null
 
 mixed=$(
-    "$BONK_BIN" draft-new \
+    "$KUSHIM_BIN" draft-new \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --seller "$seller" --customer "$customer" \
         --date 2026-12-01 --due 2026-12-31 --buyer-ref PO-MIXED \
@@ -213,7 +213,7 @@ mixed=$(
         --line "Handbook print|5|25.00|9|S" |
         field draft
 )
-"$BONK_BIN" issue "$mixed" \
+"$KUSHIM_BIN" issue "$mixed" \
     --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
     --out "$OUT/other" >/dev/null
 

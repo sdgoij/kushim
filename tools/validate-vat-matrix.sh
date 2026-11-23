@@ -12,17 +12,17 @@ MUSTANG_VERSION=2.17.0
 MUSTANG_JAR=${MUSTANG_JAR:-target/validator/Mustang-CLI-$MUSTANG_VERSION.jar}
 JAVA_BIN=${JAVA:-java}
 WORK=target/vat-matrix
-DB=$WORK/bonk.db
+DB=$WORK/kushim.db
 KEY=$WORK/keystore.bin
 OUT=$WORK/out
 PASS=validation
 
-if [ -n "${BONK_BIN:-}" ]; then
+if [ -n "${KUSHIM_BIN:-}" ]; then
     :
-elif [ -x target/debug/bonk.exe ]; then
-    BONK_BIN=target/debug/bonk.exe
-elif [ -x target/debug/bonk ]; then
-    BONK_BIN=target/debug/bonk
+elif [ -x target/debug/kushim.exe ]; then
+    KUSHIM_BIN=target/debug/kushim.exe
+elif [ -x target/debug/kushim ]; then
+    KUSHIM_BIN=target/debug/kushim
 else
     echo "error: build the CLI first (cargo build -p cli)" >&2
     exit 1
@@ -48,9 +48,9 @@ field() {
 rm -rf "$WORK"
 mkdir -p "$OUT"
 
-"$BONK_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
+"$KUSHIM_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
 seller=$(
-    "$BONK_BIN" seller-add \
+    "$KUSHIM_BIN" seller-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Validation Seller BV" --city Amsterdam \
         --street "Main 1" --postal "1000 AA" --peppol 0106:12345678 \
@@ -58,14 +58,14 @@ seller=$(
         field seller
 )
 plain_customer=$(
-    "$BONK_BIN" customer-add \
+    "$KUSHIM_BIN" customer-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Domestic Customer BV" --city Rotterdam \
         --street "Domestic 1" --postal "3000 AA" --peppol 0106:20000001 |
         field customer
 )
 vat_customer=$(
-    "$BONK_BIN" customer-add \
+    "$KUSHIM_BIN" customer-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Business Customer BV" --city Utrecht \
         --street "Business 2" --postal "3500 AA" --peppol 0106:20000002 \
@@ -73,7 +73,7 @@ vat_customer=$(
         field customer
 )
 de_customer=$(
-    "$BONK_BIN" customer-add \
+    "$KUSHIM_BIN" customer-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "German Customer GmbH" --city Berlin --country DE \
         --street "Hauptstrasse 1" --postal "10115" --peppol 0204:DE123456789 \
@@ -93,12 +93,12 @@ make_invoice() {
         --date 2026-10-27 --due 2026-11-26 --buyer-ref "PO-$label" \
         --line "$line_spec"
     [ -z "$delivery" ] || set -- "$@" --delivery "$delivery"
-    draft=$("$BONK_BIN" "$@" | field draft)
+    draft=$("$KUSHIM_BIN" "$@" | field draft)
     if [ -z "$draft" ]; then
         echo "error: could not create $label draft" >&2
         exit 1
     fi
-    "$BONK_BIN" issue "$draft" \
+    "$KUSHIM_BIN" issue "$draft" \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --out "$OUT" >/dev/null
 }
@@ -113,13 +113,13 @@ make_invoice "intra-community" "$de_customer" "Intra-community supply|1|100.00|0
 # Outside-scope invoices must not carry seller or buyer VAT identifiers, so this
 # scenario needs its own database.
 O_WORK=$WORK/outside-scope
-O_DB=$O_WORK/bonk.db
+O_DB=$O_WORK/kushim.db
 O_KEY=$O_WORK/keystore.bin
 O_OUT=$O_WORK/out
 mkdir -p "$O_WORK" "$O_OUT"
-"$BONK_BIN" init --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" >/dev/null
+"$KUSHIM_BIN" init --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" >/dev/null
 o_seller=$(
-    "$BONK_BIN" seller-add \
+    "$KUSHIM_BIN" seller-add \
         --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" \
         --name "Outside Scope Seller BV" --city Amsterdam \
         --street "Scope 1" --postal "1000 AA" --peppol 0106:30000001 \
@@ -127,21 +127,21 @@ o_seller=$(
         field seller
 )
 o_customer=$(
-    "$BONK_BIN" customer-add \
+    "$KUSHIM_BIN" customer-add \
         --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" \
         --name "Outside Scope Customer BV" --city Rotterdam \
         --street "Scope 2" --postal "3000 AA" --peppol 0106:30000002 |
         field customer
 )
 o_draft=$(
-    "$BONK_BIN" draft-new \
+    "$KUSHIM_BIN" draft-new \
         --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" \
         --seller "$o_seller" --customer "$o_customer" \
         --date 2026-10-27 --due 2026-11-26 --buyer-ref "PO-outside-scope" \
         --line "Outside scope|1|100.00|0|O||VATEX-EU-O|Not subject to VAT" |
         field draft
 )
-"$BONK_BIN" issue "$o_draft" \
+"$KUSHIM_BIN" issue "$o_draft" \
     --db "$O_DB" --keystore "$O_KEY" --passphrase "$PASS" \
     --out "$O_OUT" >/dev/null
 

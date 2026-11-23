@@ -7,7 +7,7 @@ license.workspace = true
 publish = false
 
 [lib]
-name = "bonkc"
+name = "kushim"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [features]

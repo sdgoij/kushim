@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn sniffs_mt940_tags() {
         assert_eq!(
-            sniff(b":20:BONK-2026-02\n:25:NL91ABNA0417164300\n:60F:C260201EUR1,00\n"),
+            sniff(b":20:KUSHIM-2026-02\n:25:NL91ABNA0417164300\n:60F:C260201EUR1,00\n"),
             SniffedKind::Mt940
         );
         // Framed by SWIFT blocks, the tags are still on their own lines.

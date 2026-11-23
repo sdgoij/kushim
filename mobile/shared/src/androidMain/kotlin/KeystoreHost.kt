@@ -1,10 +1,10 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import androidx.fragment.app.FragmentActivity
-import uniffi.bonkc.AppException
-import uniffi.bonkc.forgetDeviceSecret
-import uniffi.bonkc.readDeviceSecret
-import uniffi.bonkc.writeDeviceSecret
+import uniffi.kushim.AppException
+import uniffi.kushim.forgetDeviceSecret
+import uniffi.kushim.readDeviceSecret
+import uniffi.kushim.writeDeviceSecret
 
 private const val ACCOUNT = "s3-account"
 

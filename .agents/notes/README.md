@@ -1,7 +1,8 @@
 # Documentation
 
-Working name: **Bonk** (placeholder — naming is unresolved; nothing in the
-architecture may depend on the product name).
+Name: **Kushim**, after the earliest bookkeeper known by name
+([ADR-026](adr/026-product-name.md)). Every document and crate in this repository
+uses that name.
 
 | Document | Purpose |
 |----------|---------|
@@ -10,7 +11,7 @@ architecture may depend on the product name).
 | [accounting-design.md](accounting-design.md) | v1.1 accounting layer: general ledger, VAT return preparation, bank reconciliation. |
 | [implementation-plan.md](implementation-plan.md) | Milestones, effort estimates, release trains, quality gates, first-two-weeks task list. |
 | [mobile-design.md](mobile-design.md) | Proposed Android-first mobile client: Kotlin/Compose Multiplatform, UniFFI, application layer, adaptive UI, mobile security, build and milestones. |
-| [adr/](adr/README.md) | Architecture decision records 001–017. |
+| [adr/](adr/README.md) | Architecture decision records 001–026. |
 | [spikes/](spikes/README.md) | Time-boxed investigations and their findings. |
 
 The original brief lives at `../../spec.md`. The design document supersedes it

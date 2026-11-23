@@ -71,7 +71,7 @@ pub fn restore(
     restored.summary()
 }
 
-/// A sibling path with a suffix on the file name, such as `bonk.db.previous`.
+/// A sibling path with a suffix on the file name, such as `kushim.db.previous`.
 fn with_suffix(path: &Path, suffix: &str) -> std::path::PathBuf {
     let mut name = path.file_name().unwrap_or_default().to_os_string();
     name.push(suffix);
@@ -750,7 +750,10 @@ mod tests {
     use crate::dto::DraftLineDto;
 
     fn paths(directory: &tempfile::TempDir) -> (std::path::PathBuf, std::path::PathBuf) {
-        (directory.path().join("bonk.db"), directory.path().join("keystore.bin"))
+        (
+            directory.path().join("kushim.db"),
+            directory.path().join("keystore.bin"),
+        )
     }
 
     fn archive() -> (tempfile::TempDir, Archive) {
@@ -805,7 +808,7 @@ mod tests {
 
         // What the picker hands over: the two files, copied into app storage.
         let staging = tempfile::TempDir::new().unwrap();
-        let staged_database = staging.path().join("bonk.db");
+        let staged_database = staging.path().join("kushim.db");
         let staged_keystore = staging.path().join("keystore.bin");
         std::fs::copy(&source_database, &staged_database).unwrap();
         std::fs::copy(&source_keystore, &staged_keystore).unwrap();
@@ -880,7 +883,7 @@ mod tests {
         assert_eq!(key, std::fs::read(directory.path().join("keystore.bin")).unwrap());
         let note = archive.recovery_note();
         assert!(note.contains("another medium"), "{note}");
-        assert!(note.contains("bonk.db"), "{note}");
+        assert!(note.contains("kushim.db"), "{note}");
     }
 
     #[test]

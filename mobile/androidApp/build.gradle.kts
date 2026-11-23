@@ -8,11 +8,11 @@ plugins {
 // libraries, and R8. All Kotlin and Compose code lives in `:shared`, which keeps
 // the KMP plugin out of an application module (AGP 9 rejects that combination).
 android {
-    namespace = "com.github.sdgoij.bonk"
+    namespace = "com.github.sdgoij.kushim"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.github.sdgoij.bonk"
+        applicationId = "com.github.sdgoij.kushim"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -44,7 +44,7 @@ android {
         }
     }
 
-    // The native libraries dominate the APK: two ABIs, and each `libbonkc.so`
+    // The native libraries dominate the APK: two ABIs, and each `libkushim.so`
     // carries the brotli-compressed font pair that makes a Factur-X hybrid
     // possible on a device. Play splits by ABI anyway, so build the same shape
     // here and let the size guard measure what a device actually downloads

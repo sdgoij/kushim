@@ -30,7 +30,7 @@ Alternatives that were rejected:
   keystore beside it, so the indirection protects against a threat that does not
   exist here.
 
-The entry is named `bonk` / `archive-<hash of the absolute keystore path>`, so the
+The entry is named `kushim` / `archive-<hash of the absolute keystore path>`, so the
 credential store's UI does not list the user's folders. The cost is that moving
 the archive orphans the entry; `forget` then reports that it had nothing to
 remove, and the stale entry holds a key to a database that is no longer at that
@@ -58,7 +58,7 @@ obscurely, and the window hides the button in that case only after it is pressed
 - `keyring` brings `windows-native-keyring-store` on Windows, `apple-native-keyring-store`
   on macOS, and `zbus-secret-service-keyring-store` (and therefore `zbus`) on Linux.
   None of it is on the hot path; all of it is opt-in at runtime.
-- `bonk forget --device` works without the passphrase: revoking the convenience
+- `kushim forget --device` works without the passphrase: revoking the convenience
   must not require the credential it replaced.
 
 ## Alternatives

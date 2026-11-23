@@ -1,6 +1,6 @@
 # Accounting Layer Design (v1.1)
 
-**Project:** Bonk (working name; final name TBD)
+**Project:** Bonk (ADR-026)
 **Status:** Draft 0.1 for review
 **Date:** 2026-10-27
 **Scope:** the bookkeeping layer scheduled for v1.1

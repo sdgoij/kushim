@@ -32,7 +32,7 @@ use crate::evidence::{extension, extension_for_source, safe_name};
 use crate::vat;
 
 /// Marker in the manifest.
-pub const FORMAT: &str = "bonk-accountant-package";
+pub const FORMAT: &str = "kushim-accountant-package";
 /// Package layout version.
 pub const VERSION: u32 = 1;
 
@@ -590,7 +590,7 @@ fn readme(
 ) -> Result<String, StoreError> {
     let seller = crate::repo::load_seller(conn, seller_id)?;
     Ok(format!(
-        "Bonk accountant package\n\
+        "Kushim accountant package\n\
          =======================\n\
          \n\
          Books:    {} ({})\n\

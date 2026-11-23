@@ -25,9 +25,9 @@ not in the binary.
 ```mermaid
 flowchart TB
     User["User at the keyboard"]
-    App["bonk process - unlocked"]
+    App["kushim process - unlocked"]
     Keystore["keystore.bin"]
-    Archive["bonk.db + WAL"]
+    Archive["kushim.db + WAL"]
     Backups["backups/"]
     Counterparty["Counterparty files: UBL, CII, Factur-X"]
     Recipient["Evidence bundle recipient"]
@@ -76,19 +76,19 @@ the machine, not a machine an attacker is already logged into.
 | Threat | Mitigation | Residual |
 |---|---|---|
 | Forgotten passphrase | Recovery key: a second wrap of the same DEK under a 160-bit secret, shown once, never stored; `passphrase-reset` uses it and rotates it | If the recovery key is lost too, the archive is unrecoverable. That is the design, not a bug |
-| Machine lost with every backup on it, or backups copied without the key | `bonk recovery-kit <dir>` copies the keystore to a chosen medium with restore instructions; backups carry no key, so the two are stored apart | A kit stored beside the backups defeats the split. The command refuses the archive directory and its `backups/` folder, and an old kit keeps the passphrase it was taken under |
+| Machine lost with every backup on it, or backups copied without the key | `kushim recovery-kit <dir>` copies the keystore to a chosen medium with restore instructions; backups carry no key, so the two are stored apart | A kit stored beside the backups defeats the split. The command refuses the archive directory and its `backups/` folder, and an old kit keeps the passphrase it was taken under |
 | Attacker with a copy of the keystore adds their own route | `recovery-add` requires the passphrase and re-derives it from the file before writing | An attacker who already has the passphrase has nothing left to gain |
 | Corrupted or partial keystore write | Rewrites build and unwrap the new bytes in memory, then write a temporary file and rename it into place. Where the OS will not rename over an existing file, the previous keystore is parked as `keystore.old` and removed only after the new one lands, and put back if the rename fails | A crash can leave `keystore.tmp` or `keystore.old` behind; recovery is a manual rename, not a lost key |
 | Passphrase left in memory | DEK and KEK live in `Zeroizing` buffers | Passphrase `String`s are not zeroised; they are dropped, not wiped |
-| Passphrase on the command line | Flags exist for tests and scripts; the prompt and `BONK_PASSPHRASE` are the documented path | Shell history and process listings are outside our control |
+| Passphrase on the command line | Flags exist for tests and scripts; the prompt and `KUSHIM_PASSPHRASE` are the documented path | Shell history and process listings are outside our control |
 
 ### 4.3 Integrity
 
 | Threat | Mitigation | Residual |
 |---|---|---|
-| Silent corruption of stored bytes | Every payload is re-hashed by `bonk verify`, the health panel, and evidence export; artefacts are cross-checked against their blobs | Corruption is detected, not repaired. There is no redundancy inside one archive; backups are the answer |
+| Silent corruption of stored bytes | Every payload is re-hashed by `kushim verify`, the health panel, and evidence export; artefacts are cross-checked against their blobs | Corruption is detected, not repaired. There is no redundancy inside one archive; backups are the answer |
 | Rewriting a document or payload | Write-once triggers on `document`, `document_line`, `artefact`, `blob`, and append-only events; status is derived from events | Someone with the key and SQLite can drop the triggers. The chain catches the result, not the act |
-| Rewriting the audit chain | SHA-256 chain over canonical event JSON, recomputed from the first event; tampering is caught | **Forking:** an attacker with the key can rebuild a consistent chain from event one. The chain proves consistency with a *known head*, so keep heads elsewhere — evidence bundles, `bonk verify` output, a dated email |
+| Rewriting the audit chain | SHA-256 chain over canonical event JSON, recomputed from the first event; tampering is caught | **Forking:** an attacker with the key can rebuild a consistent chain from event one. The chain proves consistency with a *known head*, so keep heads elsewhere — evidence bundles, `kushim verify` output, a dated email |
 | Restoring an old backup to “undo” a document | Nothing prevents it | A restored archive is a different history with the same shape; the head differs, which is why heads are worth recording |
 
 ### 4.4 Untrusted input
@@ -152,8 +152,8 @@ all reported clean.
   the archive is readable by any process running as the user. Disk encryption and
   SQLCipher do not change that.
 - **R2 — The chain is tamper-evident, not tamper-proof.** Someone who rewrites
-  every audit row produces a chain that verifies against itself. `bonk anchor`
-  records a head in a file kept elsewhere and `bonk verify --anchor` checks it,
+  every audit row produces a chain that verifies against itself. `kushim anchor`
+  records a head in a file kept elsewhere and `kushim verify --anchor` checks it,
   which catches exactly that — but only for the runs where the user took a
   checkpoint and kept it out of reach. Without an anchor, a complete rewrite is
   still indistinguishable from the original.
@@ -163,7 +163,7 @@ all reported clean.
   two credentials into one. The command says so; nothing enforces it.
 - **R5 — Passphrase strength is the weak link.** Argon2id makes guessing
   expensive; it cannot make a guessable phrase safe. The strength estimate (M6.1)
-  shows a level and one sentence of advice under the field, and `bonk init` warns
+  shows a level and one sentence of advice under the field, and `kushim init` warns
   on stderr, but nothing refuses a weak phrase: the archive is as strong as what
   the user typed.
 - **R6 — The idle lock is a timer, not a guarantee.** The workspace locks after

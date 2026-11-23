@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-description = "The bonk binary: GUI entry point plus headless subcommands"
+description = "The kushim binary: GUI entry point plus headless subcommands"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,7 +8,7 @@ license.workspace = true
 publish = false
 
 [[bin]]
-name = "bonk"
+name = "kushim"
 path = "src/main.rs"
 
 [features]

@@ -58,16 +58,16 @@ Rust (`crates/ffi`):
 - `Counter` with a constructor and `increment() -> u64`;
 - `uniffi::setup_scaffolding!()` and a `uniffi-bindgen` binary behind a `cli`
   feature;
-- `[lib] name = "bonkc"`, `crate-type = ["lib", "cdylib", "staticlib"]`.
+- `[lib] name = "kushim"`, `crate-type = ["lib", "cdylib", "staticlib"]`.
 
 Kotlin/Compose (`mobile/`):
 
 - `commonMain`: `expect fun greet(name: String): String` and the Compose UI;
 - `androidMain`: the `actual` calls `hello` and `Counter` from
-  `uniffi.bonkc`, plus `MainActivity` and the manifest;
+  `uniffi.kushim`, plus `MainActivity` and the manifest;
 - generated Kotlin is added to `androidMain` from
   `mobile/composeApp/build/generated/uniffi` (not committed);
-- `libbonkc.so` is copied into `src/androidMain/jniLibs/<abi>/` (not committed).
+- `libkushim.so` is copied into `src/androidMain/jniLibs/<abi>/` (not committed).
 
 Commands used:
 
@@ -78,11 +78,11 @@ cargo test -p ffi
 # Kotlin bindings from the host cdylib
 cargo build -p ffi
 cargo run -p ffi --features cli --bin uniffi-bindgen -- \
-  generate target/debug/bonkc.dll --language kotlin --out-dir target/uniffi-kotlin
+  generate target/debug/kushim.dll --language kotlin --out-dir target/uniffi-kotlin
 
 # Swift bindings (iOS path)
 cargo run -p ffi --features cli --bin uniffi-bindgen -- \
-  generate target/debug/bonkc.dll --language swift --out-dir target/uniffi-swift
+  generate target/debug/kushim.dll --language swift --out-dir target/uniffi-swift
 
 # Android libraries
 cargo ndk --platform 26 -t x86_64 -t arm64-v8a build --release -p ffi
@@ -100,15 +100,15 @@ adb install -r composeApp/build/outputs/apk/release/composeApp-release.apk
 | Build | Result |
 |---|---|
 | Rust unit tests | 3 passed |
-| Kotlin bindings | `uniffi.bonkc.bonkc.kt` generated |
-| Swift bindings | `bonkc.swift`, `bonkcFFI.h`, `bonkcFFI.modulemap` generated |
+| Kotlin bindings | `uniffi.kushim.kushim.kt` generated |
+| Swift bindings | `kushim.swift`, `kushimFFI.h`, `kushimFFI.modulemap` generated |
 | Debug APK (x86_64 + arm64, all JNA ABIs initially) | 19 MB, then 18 MB after `abiFilters` |
 | Release APK, R8 + resource shrinking | **2.3 MB** |
 | Release APK without JNA/Rust (stub `actual`, temporary build) | **1.1 MB** |
 | JNA + UniFFI + Rust delta | ~1.2 MB total |
 | JNA native libs (x86_64 + arm64) | 303 432 bytes |
-| `libbonkc.so` release, both ABIs | ~531 KB + ~564 KB unstripped; 848 336 bytes after `llvm-strip --strip-unneeded` |
-| Debug `libbonkc.so` | 6.4 MB |
+| `libkushim.so` release, both ABIs | ~531 KB + ~564 KB unstripped; 848 336 bytes after `llvm-strip --strip-unneeded` |
+| Debug `libkushim.so` | 6.4 MB |
 | Release runtime | Minified APK installed, launched, rendered the Rust greeting |
 
 The release budget is 30 MB; at 2.3 MB, JNA is not worth replacing with a
@@ -143,9 +143,9 @@ terminated explicitly.
 4. **R8 needs keep rules.** `-keep class uniffi.**`, `-keep class
    com.sun.jna.**`, and the JNA `Structure` subclass rule are sufficient; the
    minified build calls Rust successfully.
-5. **Strip the Rust library for release.** A debug `libbonkc.so` is 6.4 MB;
+5. **Strip the Rust library for release.** A debug `libkushim.so` is 6.4 MB;
    the release build is ~531–564 KB and ~367–391 KB after `llvm-strip`.
-   AGP's `stripReleaseDebugSymbols` could not strip `libbonkc.so` in this setup,
+   AGP's `stripReleaseDebugSymbols` could not strip `libkushim.so` in this setup,
    so packaging needs an explicit strip step or `strip = "symbols"` in the Rust
    release profile.
 6. **Compose Multiplatform works on Android**, and the same `commonMain` UI can

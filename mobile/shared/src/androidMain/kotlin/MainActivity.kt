@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.content.Intent
 import android.net.Uri
@@ -53,7 +53,7 @@ class MainActivity : FragmentActivity() {
         } ?: return
         runCatching { readDocument(this, uri) }
             .onSuccess { (name, bytes) -> PendingImport.offer(name, bytes) }
-            .onFailure { Log.w("Bonk", "the hand-off could not be read", it) }
+            .onFailure { Log.w("Kushim", "the hand-off could not be read", it) }
         setIntent(Intent())
     }
 }

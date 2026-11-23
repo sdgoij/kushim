@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -108,7 +108,7 @@ class BudgetTest {
     }
 
     private companion object {
-        const val TAG = "BonkBudget"
+        const val TAG = "KushimBudget"
         const val PASSPHRASE = "budget-passphrase"
     }
 }

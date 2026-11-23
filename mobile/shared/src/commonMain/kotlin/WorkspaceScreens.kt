@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll

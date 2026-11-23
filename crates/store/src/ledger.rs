@@ -324,7 +324,7 @@ pub fn reopen_period(
     let seller_id = SellerId::parse_str(&seller).map_err(|error| StoreError::Data(error.to_string()))?;
     if year_is_closed(&transaction, seller_id, year)? {
         return Err(StoreError::Rejected(format!(
-            "{year} is closed; reopen the year before one of its months (`bonk ledger reopen-year --year {year} --reason \"...\"`)"
+            "{year} is closed; reopen the year before one of its months (`kushim ledger reopen-year --year {year} --reason \"...\"`)"
         )));
     }
 

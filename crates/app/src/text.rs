@@ -61,8 +61,8 @@ impl Language {
 pub mod shell {
     use super::Language;
 
-    /// The product's working name. A name does not translate.
-    pub const PRODUCT: &str = "Bonk";
+    /// The product's name. A name does not translate.
+    pub const PRODUCT: &str = "Kushim";
 
     /// The line under the name, before anything is unlocked.
     pub fn tagline(language: Language) -> &'static str {
@@ -2502,8 +2502,8 @@ pub mod health {
     pub fn no_backup(language: Language) -> &'static str {
         sentence!(
             language,
-            "last backup: none — run bonk backup",
-            "laatste back-up: geen — voer bonk backup uit"
+            "last backup: none — run kushim backup",
+            "laatste back-up: geen — voer kushim backup uit"
         )
     }
 

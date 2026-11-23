@@ -1,4 +1,4 @@
-# Bonk developer tasks.
+# Kushim developer tasks.
 #
 # One place for the commands in AGENTS.md. Every recipe that calls Cargo goes
 # through tools/cargo-strawberry.sh on Windows, because the SQLCipher build
@@ -20,9 +20,9 @@ cargo := if os_family() == "windows" { "sh tools/cargo-strawberry.sh" } else { "
 
 # The benchmark archive, kept out of the platform data directory so measuring
 # never touches the archive the window opens.
-bench-db := "target/bench/bonk.db"
+bench-db := "target/bench/kushim.db"
 bench-ledger-db := "target/bench/ledger.db"
-bench-passphrase := "bonk-demo"
+bench-passphrase := "kushim-demo"
 
 # List the recipes.
 default:
@@ -36,7 +36,7 @@ build:
 build-debug:
     {{cargo}} build -p cli
 
-# Open the window against the demo archive (passphrase: bonk-demo).
+# Open the window against the demo archive (passphrase: kushim-demo).
 run:
     {{cargo}} run -p cli -- gui
 
@@ -55,21 +55,21 @@ demo-20k:
 #
 # The passphrase is the demo seed's, so the timer starts after the unlock.
 bench-search:
-    BONK_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-db}} bench-search --repeat 50
+    KUSHIM_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-db}} bench-search --repeat 50
 
 # Seed the ledger benchmark archive: a demo base (seller, chart, bank account)
 # with no documents, then 500 001 synthetic journal lines.
 bench-ledger-seed:
-    BONK_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli -- --db {{bench-ledger-db}} demo-seed --force --invoices 0 --received 0 --skip-last-year
-    BONK_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli -- --db {{bench-ledger-db}} bench-seed
+    KUSHIM_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli -- --db {{bench-ledger-db}} demo-seed --force --invoices 0 --received 0 --skip-last-year
+    KUSHIM_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli -- --db {{bench-ledger-db}} bench-seed
 
 # M10 exit criterion: a trial balance over 500 000 journal lines under 2 s.
 bench-ledger:
-    BONK_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-ledger-db}} bench-ledger --repeat 20
+    KUSHIM_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-ledger-db}} bench-ledger --repeat 20
 
 # M10 exit criterion: 10 000 bank lines imported under 2 s.
 bench-bank:
-    BONK_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-ledger-db}} bench-bank --lines 10000
+    KUSHIM_PASSPHRASE={{bench-passphrase}} {{cargo}} run -p cli --release -- --db {{bench-ledger-db}} bench-bank --lines 10000
 
 # Check formatting and whitespace. This is the whole gate for docs-only changes.
 fmt:
@@ -113,7 +113,7 @@ mobile-release:
 # Play requires 16 KB page alignment for the native libraries of a 64-bit app.
 # Checks the cross-built libraries, beside the build that produces them.
 mobile-page-size:
-    sh tools/check-page-size.sh target/aarch64-linux-android/release/libbonkc.so target/x86_64-linux-android/release/libbonkc.so
+    sh tools/check-page-size.sh target/aarch64-linux-android/release/libkushim.so target/x86_64-linux-android/release/libkushim.so
 
 # Golden hash test: the sample invoice must render the same bytes on the host and
 # on a device. Runs the Rust assertion, then the same values as an instrumented
@@ -123,7 +123,7 @@ mobile-page-size:
 mobile-golden serial="":
     {{cargo}} test -p ffi artefact_hashes_match_the_golden_values
     cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.bonk.ArtefactDeterminismTest
+    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ArtefactDeterminismTest
 
 # Screenshot tests: the shell at phone, medium and tablet sizes, compared with
 # the committed goldens. The images are drawn at one pixel per dp, so they do
@@ -133,14 +133,14 @@ mobile-golden serial="":
 # Usage: just mobile-screenshots [serial]
 mobile-screenshots serial="":
     cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.bonk.ShellScreenshotTest
+    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ShellScreenshotTest
 
 # Regenerate the screenshot goldens from a device, after an intended UI change.
 #
 # Usage: just mobile-screenshots-update [serial]
 mobile-screenshots-update serial="":
     cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.bonk.ShellScreenshotTest -e updateScreenshots 1
+    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.ShellScreenshotTest -e updateScreenshots 1
     sh tools/pull-screenshots.sh "{{serial}}"
 
 # §6.8 timings on the device the serial names: create, unlock (Argon2 and the
@@ -151,7 +151,7 @@ mobile-screenshots-update serial="":
 # Usage: just mobile-budgets [serial]
 mobile-budgets serial="":
     cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
-    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.bonk.BudgetTest
+    sh tools/run-android-test.sh "{{serial}}" com.github.sdgoij.kushim.BudgetTest
 
 # Cold start of the release build to the lock screen, as the platform reports
 # it. Installs the release APK over whatever is on the device.
@@ -172,8 +172,8 @@ mobile-cold-start serial="":
 demo-android serial="":
     rm -rf target/demo-android
     mkdir -p target/demo-android
-    BONK_PASSPHRASE=bonk-demo {{cargo}} run -q -p cli -- --db target/demo-android/bonk.db demo-seed --force
-    sh tools/push-archive.sh "{{serial}}" target/demo-android bonk-demo
+    KUSHIM_PASSPHRASE=kushim-demo {{cargo}} run -q -p cli -- --db target/demo-android/kushim.db demo-seed --force
+    sh tools/push-archive.sh "{{serial}}" target/demo-android kushim-demo
 
 # Test one crate: `just test-crate store`.
 test-crate crate:

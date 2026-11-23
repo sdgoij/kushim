@@ -51,7 +51,7 @@ Android x86_64:
 export MSYS_NO_PATHCONV=1
 export ANDROID_HOME=C:/Users/T/AppData/Local/Android/Sdk
 export ANDROID_NDK_HOME=C:/Users/T/AppData/Local/Android/android-ndk-r30
-export PERL5LIB=/c/Users/T/Desktop/bonk/target/perl-lib
+export PERL5LIB=/c/Users/T/Desktop/kushim/target/perl-lib
 export PATH=/usr/bin:$PATH
 cargo ndk --platform 26 -t x86_64 build -p store --example android_canary
 
@@ -125,7 +125,7 @@ cp -r /c/Strawberry/perl/lib/ExtUtils target/perl-lib/
 cp -r /c/Strawberry/perl/lib/Locale  target/perl-lib/
 cp -r /c/Strawberry/perl/lib/Pod     target/perl-lib/
 
-export PERL5LIB=/c/Users/T/Desktop/bonk/target/perl-lib
+export PERL5LIB=/c/Users/T/Desktop/kushim/target/perl-lib
 export PATH=/usr/bin:$PATH
 ```
 
@@ -151,7 +151,7 @@ the 8.3 short form (`C:/PROGRA~1/Git/usr/bin/perl.exe`). The normal Git path
 contains a space and `make depend` fails with `C:/Program: No such file`.
 
 `tools/strip-android.sh` then removes symbols from both ABIs, because AGP's own
-strip step cannot handle `libbonkc.so`.
+strip step cannot handle `libkushim.so`.
 
 ## Findings that affect the plan
 

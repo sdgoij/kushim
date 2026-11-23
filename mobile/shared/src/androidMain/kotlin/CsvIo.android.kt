@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult

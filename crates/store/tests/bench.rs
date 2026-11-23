@@ -21,7 +21,7 @@ impl Books {
     fn open() -> Self {
         let dir = TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-        let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
         seed_starter_chart(database.connection(), NOW).unwrap();
         let seller = SellerId::new();
         insert_seller(
@@ -80,7 +80,7 @@ fn the_synthetic_ledger_balances_and_refuses_a_second_run() {
 fn the_synthetic_ledger_refuses_an_archive_without_the_chart() {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-    let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
     let seller = SellerId::new();
     insert_seller(
         database.connection(),

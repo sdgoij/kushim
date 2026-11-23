@@ -28,7 +28,7 @@ pub use preflight::Preflight;
 pub use template::Template;
 
 /// The renderer name and version, recorded on every artefact.
-pub const RENDERER_VERSION: &str = "bonk-layout-1";
+pub const RENDERER_VERSION: &str = "kushim-layout-1";
 
 /// The data the document shows. Strings are pre-formatted, so no business
 /// logic — and no floating-point money — reaches the renderer.

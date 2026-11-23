@@ -14,7 +14,7 @@ was missing was getting the XML out of the container.
 
 ## Decision
 
-`bonk-import` reads PDFs with `lopdf` (MIT, pure Rust). It locates the attachment
+`kushim-import` reads PDFs with `lopdf` (MIT, pure Rust). It locates the attachment
 through the document catalog's `/EmbeddedFiles` name tree, falls back to a scan
 of `/Type /EmbeddedFile` streams for producers that omit the tree, decodes the
 stream under a fixed size bound, and cross-checks the XMP packet's

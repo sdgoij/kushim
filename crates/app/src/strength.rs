@@ -62,7 +62,7 @@ const COMMON: &[&str] = &[
     "123456789",
     "abc123",
     "admin",
-    "bonk",
+    "kushim",
     "changeme",
     "dragon",
     "football",
@@ -217,7 +217,7 @@ mod tests {
             "Passw0rd",
             "letmein",
             "qwerty",
-            "bonk",
+            "kushim",
             "Secret42",
         ] {
             assert_eq!(assess(value).strength, Strength::Weak, "{value}");

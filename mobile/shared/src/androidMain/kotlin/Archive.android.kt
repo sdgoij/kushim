@@ -1,11 +1,11 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.content.Context
 import android.os.StatFs
-import uniffi.bonkc.AppException
-import uniffi.bonkc.Archive
-import uniffi.bonkc.archiveExists
-import uniffi.bonkc.deviceReady as ffiDeviceReady
+import uniffi.kushim.AppException
+import uniffi.kushim.Archive
+import uniffi.kushim.archiveExists
+import uniffi.kushim.deviceReady as ffiDeviceReady
 import java.io.File
 
 /**
@@ -265,7 +265,7 @@ object MobileArchiveHost {
     fun stagingPaths(): Pair<String, String> {
         val base = staging ?: error("the archive host is not attached")
         base.mkdirs()
-        return File(base, "bonk.db").absolutePath to File(base, "keystore.bin").absolutePath
+        return File(base, "kushim.db").absolutePath to File(base, "keystore.bin").absolutePath
     }
 
     /**
@@ -282,7 +282,7 @@ object MobileArchiveHost {
         val (stagedDatabase, stagedKeystore) = stagingPaths()
         archive?.close()
         archive = null
-        uniffi.bonkc.restoreArchive(database, keystore, stagedDatabase, stagedKeystore, passphrase)
+        uniffi.kushim.restoreArchive(database, keystore, stagedDatabase, stagedKeystore, passphrase)
         val opened = Archive.open(database, keystore, passphrase)
         archive = opened
         return opened.summary().toCommon()
@@ -321,14 +321,14 @@ object MobileArchiveHost {
     private fun paths(): Pair<String, String> {
         val base = directory ?: error("the archive host is not attached")
         base.mkdirs()
-        return File(base, "bonk.db").absolutePath to File(base, "keystore.bin").absolutePath
+        return File(base, "kushim.db").absolutePath to File(base, "keystore.bin").absolutePath
     }
 }
 
-private fun uniffi.bonkc.ArchiveSummary.toCommon() =
+private fun uniffi.kushim.ArchiveSummary.toCommon() =
     ArchiveSummary(sellers = sellers, drafts = drafts, schemaVersion = schemaVersion)
 
-private fun uniffi.bonkc.CustomerRecord.toCommon() = Customer(
+private fun uniffi.kushim.CustomerRecord.toCommon() = Customer(
     id = id,
     name = name,
     street = street.orEmpty(),
@@ -343,7 +343,7 @@ private fun uniffi.bonkc.CustomerRecord.toCommon() = Customer(
     phone = phone.orEmpty(),
 )
 
-private fun Customer.toFfi() = uniffi.bonkc.CustomerRecord(
+private fun Customer.toFfi() = uniffi.kushim.CustomerRecord(
     id = id,
     name = name,
     street = street.ifBlank { null },
@@ -358,7 +358,7 @@ private fun Customer.toFfi() = uniffi.bonkc.CustomerRecord(
     phone = phone.ifBlank { null },
 )
 
-private fun uniffi.bonkc.DraftRecord.toCommon() = Draft(
+private fun uniffi.kushim.DraftRecord.toCommon() = Draft(
     id = id,
     sellerId = sellerId,
     customerId = customerId,
@@ -375,7 +375,7 @@ private fun uniffi.bonkc.DraftRecord.toCommon() = Draft(
     lines = lines.map { it.toCommon() },
 )
 
-private fun Draft.toFfi() = uniffi.bonkc.DraftRecord(
+private fun Draft.toFfi() = uniffi.kushim.DraftRecord(
     id = id,
     sellerId = sellerId,
     customerId = customerId,
@@ -388,11 +388,11 @@ private fun Draft.toFfi() = uniffi.bonkc.DraftRecord(
     orderReference = orderReference.ifBlank { null },
     note = note.ifBlank { null },
     template = template.ifBlank { null },
-    precedingInvoice = precedingInvoice?.let { uniffi.bonkc.PrecedingInvoiceRecord(it.number, it.issueDate) },
+    precedingInvoice = precedingInvoice?.let { uniffi.kushim.PrecedingInvoiceRecord(it.number, it.issueDate) },
     lines = lines.map { it.toFfi() },
 )
 
-private fun uniffi.bonkc.DraftLineRecord.toCommon() = DraftLine(
+private fun uniffi.kushim.DraftLineRecord.toCommon() = DraftLine(
     id = id,
     position = position.toInt(),
     name = name,
@@ -408,7 +408,7 @@ private fun uniffi.bonkc.DraftLineRecord.toCommon() = DraftLine(
     exemptionReasonCode = exemptionReasonCode.orEmpty(),
 )
 
-private fun DraftLine.toFfi() = uniffi.bonkc.DraftLineRecord(
+private fun DraftLine.toFfi() = uniffi.kushim.DraftLineRecord(
     id = id,
     position = position.toUInt(),
     name = name,
@@ -424,7 +424,7 @@ private fun DraftLine.toFfi() = uniffi.bonkc.DraftLineRecord(
     exemptionReasonCode = exemptionReasonCode.ifBlank { null },
 )
 
-private fun uniffi.bonkc.FindingRecord.toCommon() = Finding(
+private fun uniffi.kushim.FindingRecord.toCommon() = Finding(
     code = code,
     severity = severity,
     bt = bt.orEmpty(),
@@ -432,13 +432,13 @@ private fun uniffi.bonkc.FindingRecord.toCommon() = Finding(
     message = detail,
 )
 
-private fun uniffi.bonkc.DraftTotalsRecord.toCommon() = DraftTotals(
+private fun uniffi.kushim.DraftTotalsRecord.toCommon() = DraftTotals(
     netMicros = netMicros,
     taxMicros = taxMicros,
     grossMicros = grossMicros,
 )
 
-private fun uniffi.bonkc.IssueRecord.toCommon() = IssueResult(
+private fun uniffi.kushim.IssueRecord.toCommon() = IssueResult(
     issued = issued?.let { summary ->
         IssuedDocument(
             id = summary.id,
@@ -457,7 +457,7 @@ private fun uniffi.bonkc.IssueRecord.toCommon() = IssueResult(
     pdfError = pdfError.orEmpty(),
 )
 
-private fun uniffi.bonkc.SellerRecord.toCommon() = Seller(
+private fun uniffi.kushim.SellerRecord.toCommon() = Seller(
     id = id,
     name = name,
     street = street.orEmpty(),
@@ -474,7 +474,7 @@ private fun uniffi.bonkc.SellerRecord.toCommon() = Seller(
     defaultLocale = defaultLocale,
 )
 
-private fun Seller.toFfi() = uniffi.bonkc.SellerRecord(
+private fun Seller.toFfi() = uniffi.kushim.SellerRecord(
     id = id,
     name = name,
     street = street.ifBlank { null },
@@ -491,7 +491,7 @@ private fun Seller.toFfi() = uniffi.bonkc.SellerRecord(
     defaultLocale = defaultLocale,
 )
 
-private fun uniffi.bonkc.DocumentHitRecord.toCommon() = DocumentHit(
+private fun uniffi.kushim.DocumentHitRecord.toCommon() = DocumentHit(
     id = id,
     number = number,
     direction = direction,
@@ -503,7 +503,7 @@ private fun uniffi.bonkc.DocumentHitRecord.toCommon() = DocumentHit(
     matched = matched,
 )
 
-private fun uniffi.bonkc.DocumentLineRecord.toCommon() = DocumentLine(
+private fun uniffi.kushim.DocumentLineRecord.toCommon() = DocumentLine(
     position = position,
     name = name,
     description = description.orEmpty(),
@@ -516,7 +516,7 @@ private fun uniffi.bonkc.DocumentLineRecord.toCommon() = DocumentLine(
     taxMicros = taxMicros,
 )
 
-private fun uniffi.bonkc.DocumentArtefactRecord.toCommon() = DocumentArtefact(
+private fun uniffi.kushim.DocumentArtefactRecord.toCommon() = DocumentArtefact(
     kind = kind,
     bytesHash = bytesHash,
     sizeBytes = sizeBytes,
@@ -524,25 +524,25 @@ private fun uniffi.bonkc.DocumentArtefactRecord.toCommon() = DocumentArtefact(
     rendererVersion = rendererVersion,
 )
 
-private fun uniffi.bonkc.ImportRecord.toCommon() = ImportReport(
+private fun uniffi.kushim.ImportRecord.toCommon() = ImportReport(
     number = number,
     documentId = documentId,
     supplier = supplier.orEmpty(),
     duplicate = duplicate,
 )
 
-private fun uniffi.bonkc.BackupRecord.toCommon() = BackupExport(path = path, bytes = bytes)
+private fun uniffi.kushim.BackupRecord.toCommon() = BackupExport(path = path, bytes = bytes)
 
-private fun uniffi.bonkc.ChainHeadRecord.toCommon() = ChainHead(seq = seq, hash = hash, at = at)
+private fun uniffi.kushim.ChainHeadRecord.toCommon() = ChainHead(seq = seq, hash = hash, at = at)
 
-private fun uniffi.bonkc.DocumentEventRecord.toCommon() = DocumentEvent(
+private fun uniffi.kushim.DocumentEventRecord.toCommon() = DocumentEvent(
     kind = kind,
     at = at,
     actor = actor,
     detail = detail.orEmpty(),
 )
 
-private fun uniffi.bonkc.DocumentDetailRecord.toCommon() = DocumentDetail(
+private fun uniffi.kushim.DocumentDetailRecord.toCommon() = DocumentDetail(
     id = id,
     number = number,
     direction = direction,
@@ -567,7 +567,7 @@ private fun uniffi.bonkc.DocumentDetailRecord.toCommon() = DocumentDetail(
     events = events.map { it.toCommon() },
 )
 
-private fun uniffi.bonkc.CustomerImportRecord.toCommon() = CustomerImportReport(
+private fun uniffi.kushim.CustomerImportRecord.toCommon() = CustomerImportReport(
     imported = imported.toInt(),
     skipped = skipped.toInt(),
     errors = errors,

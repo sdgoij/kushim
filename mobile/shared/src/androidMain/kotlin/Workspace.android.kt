@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 actual fun listCustomers(): List<Customer> = withUserError { MobileArchiveHost.listCustomers() }
 

@@ -12,17 +12,17 @@ MUSTANG_VERSION=2.17.0
 MUSTANG_JAR=${MUSTANG_JAR:-target/validator/Mustang-CLI-$MUSTANG_VERSION.jar}
 JAVA_BIN=${JAVA:-java}
 WORK=target/m1-validation
-DB=$WORK/bonk.db
+DB=$WORK/kushim.db
 KEY=$WORK/keystore.bin
 OUT=$WORK/out
 PASS=validation
 
-if [ -n "${BONK_BIN:-}" ]; then
+if [ -n "${KUSHIM_BIN:-}" ]; then
     :
-elif [ -x target/debug/bonk.exe ]; then
-    BONK_BIN=target/debug/bonk.exe
-elif [ -x target/debug/bonk ]; then
-    BONK_BIN=target/debug/bonk
+elif [ -x target/debug/kushim.exe ]; then
+    KUSHIM_BIN=target/debug/kushim.exe
+elif [ -x target/debug/kushim ]; then
+    KUSHIM_BIN=target/debug/kushim
 else
     echo "error: build the CLI first (cargo build -p cli)" >&2
     exit 1
@@ -48,9 +48,9 @@ field() {
 rm -rf "$WORK"
 mkdir -p "$OUT"
 
-"$BONK_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
+"$KUSHIM_BIN" init --db "$DB" --keystore "$KEY" --passphrase "$PASS" >/dev/null
 seller=$(
-    "$BONK_BIN" seller-add \
+    "$KUSHIM_BIN" seller-add \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --name "Validation Seller BV" --city Amsterdam \
         --street "Main 1" --postal "1000 AA" --peppol 0106:12345678 \
@@ -58,26 +58,26 @@ seller=$(
         field seller
 )
 
-c1=$("$BONK_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Alpha Customer BV" --city Rotterdam --street "Alpha 1" --postal "3000 AA" --peppol 0106:10000001 | field customer)
-c2=$("$BONK_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Beta Customer BV" --city Utrecht --street "Beta 2" --postal "3500 AA" --peppol 0106:10000002 | field customer)
+c1=$("$KUSHIM_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Alpha Customer BV" --city Rotterdam --street "Alpha 1" --postal "3000 AA" --peppol 0106:10000001 | field customer)
+c2=$("$KUSHIM_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Beta Customer BV" --city Utrecht --street "Beta 2" --postal "3500 AA" --peppol 0106:10000002 | field customer)
 # An EU buyer outside the Netherlands, for intra-community supply: it needs a
 # VAT identifier and a country of its own.
-c3=$("$BONK_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Gamma Customer BV" --city Antwerpen --country BE --street "Gamma 3" --postal "2000" --vat BE0417497106 --peppol 0208:0417497106 | field customer)
-c4=$("$BONK_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Delta Kunde GmbH" --city Koeln --country DE --street "Delta 4" --postal "50667" --vat DE123456789 --peppol 9930:DE123456789 | field customer)
+c3=$("$KUSHIM_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Gamma Customer BV" --city Antwerpen --country BE --street "Gamma 3" --postal "2000" --vat BE0417497106 --peppol 0208:0417497106 | field customer)
+c4=$("$KUSHIM_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Delta Kunde GmbH" --city Koeln --country DE --street "Delta 4" --postal "50667" --vat DE123456789 --peppol 9930:DE123456789 | field customer)
 # A buyer outside the union, for export.
-c5=$("$BONK_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Epsilon AS" --city Bergen --country NO --street "Epsilon 5" --postal "5003" --peppol 0192:123456789 | field customer)
+c5=$("$KUSHIM_BIN" customer-add --db "$DB" --keystore "$KEY" --passphrase "$PASS" --name "Epsilon AS" --city Bergen --country NO --street "Epsilon 5" --postal "5003" --peppol 0192:123456789 | field customer)
 
 n=0
 
 # Issues one draft from `draft-new` arguments, so the multi-line invoices below do
 # not repeat the bookkeeping.
 issue_draft() {
-    draft=$("$BONK_BIN" "$@" | field draft)
+    draft=$("$KUSHIM_BIN" "$@" | field draft)
     if [ -z "$draft" ]; then
         echo "error: could not create a draft" >&2
         exit 1
     fi
-    "$BONK_BIN" issue "$draft" \
+    "$KUSHIM_BIN" issue "$draft" \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --out "$OUT" >/dev/null
 }
@@ -201,7 +201,7 @@ issue_draft draft-new --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
 # Credit notes exercise the CreditNote binding, including BG-3.
 for invoice in 2026-0001 2026-0002 2026-0003; do
     credit=$(
-        "$BONK_BIN" credit-note "$invoice" \
+        "$KUSHIM_BIN" credit-note "$invoice" \
             --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
             --date 2026-12-15 |
             field "credit note"
@@ -210,7 +210,7 @@ for invoice in 2026-0001 2026-0002 2026-0003; do
         echo "error: could not create a credit note for $invoice" >&2
         exit 1
     fi
-    "$BONK_BIN" issue "$credit" \
+    "$KUSHIM_BIN" issue "$credit" \
         --db "$DB" --keystore "$KEY" --passphrase "$PASS" \
         --out "$OUT" >/dev/null
 done

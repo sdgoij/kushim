@@ -45,7 +45,7 @@ Rust (`crates/ffi`):
 Android (`mobile/composeApp`):
 
 - `KeystoreDeviceStore` implements the generated `DeviceSecretStore` interface.
-- Key: AES-256-GCM, alias `bonk.device.s3`,
+- Key: AES-256-GCM, alias `kushim.device.s3`,
   `setUserAuthenticationRequired(true)`,
   `setInvalidatedByBiometricEnrollment(true)`,
   `setUserAuthenticationParameters(0, AUTH_BIOMETRIC_STRONG |
@@ -69,7 +69,7 @@ Android (`mobile/composeApp`):
 ```sh
 adb shell locksettings set-pin 1234
 adb install -r mobile/composeApp/build/outputs/apk/debug/composeApp-debug.apk
-adb shell am start -n com.github.sdgoij.bonk/.MainActivity
+adb shell am start -n com.github.sdgoij.kushim/.MainActivity
 # tap "Run S3 Keystore test", enter 1234 on the system keypad
 ```
 
@@ -125,7 +125,7 @@ adb install -r composeApp/build/outputs/apk/release/composeApp-release.apk
    device** checkbox calls `Archive::remember_device`, and the unlock screen calls
    `Archive::open_with_device`. On the API 37 AVD the prompt used the device-PIN
    path: create + remember, lock, device unlock, and forget all succeeded; forget
-   recorded the audit event. The prompt now says "Unlock Bonk" rather than the S3
+   recorded the audit event. The prompt now says "Unlock Kushim" rather than the S3
    probe wording. A physical fingerprint and enrolment change remain.
 
 ## Decision

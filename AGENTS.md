@@ -44,7 +44,7 @@ git config core.hooksPath .githooks
 ```
 
 The hook runs formatting and clippy through the Strawberry wrapper and blocks
-the commit on failure. `BONK_PRECOMMIT_TESTS=1` adds the workspace tests.
+the commit on failure. `KUSHIM_PRECOMMIT_TESTS=1` adds the workspace tests.
 
 The gates, spelled out. On Windows these need the Strawberry Perl wrapper, which
 `just` applies for you:

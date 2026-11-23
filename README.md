@@ -1,4 +1,4 @@
-# Bonk (working name)
+# Kushim
 
 Local-first e-invoicing client for the EU market, with the accounting layer
 scheduled next. Nothing leaves the machine unless the user explicitly sends it.
@@ -30,7 +30,7 @@ Every command lives in the [`Justfile`](Justfile), which picks the right Cargo
 wrapper for the platform:
 
 ```sh
-just build      # shippable binary, release profile -> target/release/bonk
+just build      # shippable binary, release profile -> target/release/kushim
 just gate       # fmt, clippy, deny, and both test suites
 ```
 
@@ -61,7 +61,7 @@ covers Latin, Greek, Cyrillic, kana, hangul, and the Han ideographs, so an
 invoice from a supplier in any of those scripts still produces a Factur-X
 container. They are embedded brotli-compressed (50 MB of faces, 34 MB in the
 binary) and inflated once per process — about half a second in a release build,
-which `bonk gui` spends on a thread while it opens. PDFs stay small: the writer
+which `kushim gui` spends on a thread while it opens. PDFs stay small: the writer
 embeds a subset of the glyphs a document uses, so a two-page invoice is tens of
 kilobytes whatever the source font weighs.
 
@@ -128,14 +128,14 @@ README, and `LICENSE.md`:
 
 | Target | Runner | Archive |
 |--------|--------|---------|
-| `x86_64-unknown-linux-gnu` | `ubuntu-latest` | `bonk-x86_64-unknown-linux-gnu.tar.gz` |
-| `aarch64-unknown-linux-gnu` | `ubuntu-24.04-arm` | `bonk-aarch64-unknown-linux-gnu.tar.gz` |
-| `aarch64-apple-darwin` | `macos-15-intel` | `bonk-aarch64-apple-darwin.tar.gz` |
-| `x86_64-apple-darwin` | `macos-15-intel` | `bonk-x86_64-apple-darwin.tar.gz` |
-| `x86_64-pc-windows-msvc` | `windows-latest` | `bonk-x86_64-pc-windows-msvc.zip` |
+| `x86_64-unknown-linux-gnu` | `ubuntu-latest` | `kushim-x86_64-unknown-linux-gnu.tar.gz` |
+| `aarch64-unknown-linux-gnu` | `ubuntu-24.04-arm` | `kushim-aarch64-unknown-linux-gnu.tar.gz` |
+| `aarch64-apple-darwin` | `macos-15-intel` | `kushim-aarch64-apple-darwin.tar.gz` |
+| `x86_64-apple-darwin` | `macos-15-intel` | `kushim-x86_64-apple-darwin.tar.gz` |
+| `x86_64-pc-windows-msvc` | `windows-latest` | `kushim-x86_64-pc-windows-msvc.zip` |
 
 The release also carries one CycloneDX 1.6 SBOM per target, named after the
-archive it belongs to (`bonk-<target>.cdx.json`), and `SHA256SUMS` covering every
+archive it belongs to (`kushim-<target>.cdx.json`), and `SHA256SUMS` covering every
 asset including those SBOMs. Each document lists the dependencies that archive
 links rather than the union across platforms — the resolver filters by target —
 and is timestamped from the commit, so the same tag produces the same files.
@@ -153,7 +153,7 @@ the shipped Linux binary over the EN 16931 corpus and the official validator
 before the release is created.
 
 None of the binaries are signed. On macOS, Gatekeeper quarantines the download:
-`xattr -d com.apple.quarantine bonk` after unpacking, or allow it under System
+`xattr -d com.apple.quarantine kushim` after unpacking, or allow it under System
 Settings → Privacy & Security. On Windows, SmartScreen warns on the first run.
 
 ## Repository setup
@@ -167,7 +167,7 @@ git config core.hooksPath .githooks
 The hook runs `cargo fmt --all --check` and
 `clippy --workspace --all-targets -- -D warnings` through
 `tools/cargo-strawberry.sh`, and refuses the commit when either fails. Set
-`BONK_PRECOMMIT_TESTS=1` to include `cargo test --workspace`, and use
+`KUSHIM_PRECOMMIT_TESTS=1` to include `cargo test --workspace`, and use
 `git commit --no-verify` to skip the gate once. It checks the working tree, not
 the index, so a partially staged change needs its own care.
 
@@ -175,16 +175,16 @@ the index, so a partially staged change needs its own care.
 
 ```sh
 # macOS / Linux
-cargo run -p cli -- init --db ./bonk.db --keystore ./keystore.bin
-cargo run -p cli -- verify --db ./bonk.db --keystore ./keystore.bin
+cargo run -p cli -- init --db ./kushim.db --keystore ./keystore.bin
+cargo run -p cli -- verify --db ./kushim.db --keystore ./keystore.bin
 cargo run -p cli -- gui
 
 # Windows
-sh tools/cargo-strawberry.sh run -p cli -- init --db ./bonk.db --keystore ./keystore.bin
+sh tools/cargo-strawberry.sh run -p cli -- init --db ./kushim.db --keystore ./keystore.bin
 sh tools/cargo-strawberry.sh run -p cli -- gui
 ```
 
-`BONK_PASSPHRASE` is read when `--passphrase` is omitted; otherwise the CLI
+`KUSHIM_PASSPHRASE` is read when `--passphrase` is omitted; otherwise the CLI
 prompts. Passing a passphrase on the command line is for tests only (shell
 history).
 
@@ -193,7 +193,7 @@ history).
 Reversible migrations can be rolled back explicitly:
 
 ```sh
-bonk migrate-down --to 2 --yes
+kushim migrate-down --to 2 --yes
 ```
 
 Rollback preflights the whole chain first. If any migration above the target has
@@ -208,27 +208,27 @@ forward change.
 ### First invoice from the CLI
 
 ```sh
-bonk init
-bonk seller-add --name "Your BV" --city Amsterdam --street "Main 1" --postal "1000 AA" \
+kushim init
+kushim seller-add --name "Your BV" --city Amsterdam --street "Main 1" --postal "1000 AA" \
     --peppol 0106:12345678 --vat NL123456782B01 --kvk 12345678
-bonk customer-add --name "Customer BV" --city Rotterdam --street "Buyer 1" \
+kushim customer-add --name "Customer BV" --city Rotterdam --street "Buyer 1" \
     --postal "3000 AA" --peppol 0106:87654321
-bonk draft-new --seller <seller-id> --customer <customer-id> \
+kushim draft-new --seller <seller-id> --customer <customer-id> \
     --due 2026-11-26 --buyer-ref PO-1 \
     --line "Consulting|2|50.00|21"
-bonk issue <draft-id> --out ./out
-bonk credit-note 2026-0001
-bonk issue <credit-note-draft-id> --out ./out
-bonk import ./received/*.xml
-bonk received
-bonk match 2026-0001 "Customer BV"
-bonk search customer --direction inbound
-bonk export --format csv --out invoices.csv
-bonk approve 2026-0001
-bonk mark-paid 2026-0001
-bonk verify
-bonk backup --to ./backups --keep 10
-bonk verify-backup ./backups/backup-20261028T120000Z.db
+kushim issue <draft-id> --out ./out
+kushim credit-note 2026-0001
+kushim issue <credit-note-draft-id> --out ./out
+kushim import ./received/*.xml
+kushim received
+kushim match 2026-0001 "Customer BV"
+kushim search customer --direction inbound
+kushim export --format csv --out invoices.csv
+kushim approve 2026-0001
+kushim mark-paid 2026-0001
+kushim verify
+kushim backup --to ./backups --keep 10
+kushim verify-backup ./backups/backup-20261028T120000Z.db
 ```
 
 `issue --out <dir>` writes three files per document: `2026-0001.xml` (UBL for
@@ -255,53 +255,53 @@ The ledger is derived from the archive, never typed twice. Posting is
 idempotent, so running `ledger post` again posts only what is new:
 
 ```sh
-bonk ledger setup                                  # the starter chart, once
-bonk ledger post                                   # everything not yet posted
-bonk ledger post 2026-0001                         # or named documents only
-bonk ledger opening ./opening.csv --date 2026-01-01   # one opening entry, once
-bonk ledger chart                                  # accounts, kinds, control flags
-bonk ledger trial-balance --from 2026-01-01 --to 2026-03-31
-bonk ledger profit-and-loss --from 2026-01-01 --to 2026-03-31
-bonk ledger balance-sheet --as-of 2026-03-31
-bonk ledger reverse VK:2026-0001 --reason "wrong customer" --date 2026-04-02
-bonk ledger vat-return --year 2026 --month 3            # preview the aangifte
-bonk ledger vat-return --year 2026 --month 3 --prepare  # store it, with its basis
-bonk ledger icp --year 2026 --month 3                   # Opgaaf ICP, grouped by buyer
-bonk ledger icp --year 2026 --month 3 --out icp.csv    # the same listing as CSV
-bonk ledger package --year 2026 --out handoff/2026     # reports, returns, listings, documents
-bonk ledger close --year 2026 --month 3                 # refuse postings into the month
-bonk ledger close --year 2026 --month 3 --dry-run       # what would stop it
-bonk ledger reopen --year 2026 --month 3 --reason "vergeten factuur"
-bonk ledger close-year --year 2026                     # resultaatbestemming, then lock the year
-bonk ledger close-year --year 2026 --dry-run           # what it would move, and what stops it
-bonk ledger reopen-year --year 2026 --reason "vergeten factuur"
-bonk ledger open-items                                  # what customers still owe
-bonk ledger rebuild-open-items                          # fill the subledger of an older archive
-bonk ledger tax-codes                                   # the treatments a purchase can be filed under
-bonk ledger tax-code 2026-0042                          # what a document is filed under
-bonk ledger tax-code 2026-0042 NL-AE-GOODS              # put its reverse-charged VAT in 4b
-bonk ledger account 2026-0042 7100                     # where its cost lands, before it is posted
-bonk ledger post-manual --date 2026-03-01 --description "Bankkosten" --line "7100|debit|12.50" --line "1100|credit|12.50"
-bonk ledger reclassify IK:2026-0001 NL-AE-GOODS --reason "verkeerde rubriek"
-bonk ledger reclassify IK:2026-0001 --account 7100 --reason "verkeerde rekening" --date 2026-03-31
-bonk ledger open-items --kind payable --aging --as-of 2026-03-31
-bonk ledger fx import ~/Downloads/eurofxref-hist.csv   # ECB reference rates, offline
-bonk ledger fx set --currency GBP --date 2026-03-01 --rate 1.17
-bonk ledger fx override 2026-0002 --rate 1.18          # one document, before it posts
-bonk ledger fx show 2026-0002                          # the rate it would use, and why
-bonk ledger fx list --currency GBP
-bonk ledger bank add --name "Zakelijk" --iban NL91ABNA0417164300
-bonk ledger bank profile put rabo --file rabo.toml    # how to read this bank's CSV
-bonk ledger bank import ./statements/feb.camt.xml     # CAMT.053, MT940, or CSV
-bonk ledger bank import ./statements/feb.csv          # feb.toml beside it says how
-bonk ledger bank auto-match                           # where the payment names the invoice
-bonk ledger bank propose <transaction>                # what it could settle, groups included
-bonk ledger bank match <transaction> --item <a> --item <b>   # one payment, several invoices
-bonk ledger bank transactions --status new            # the unmatched queue
-bonk ledger bank rule add --name bankkosten --remittance kosten --direction out --account 7100
-bonk ledger bank classify --dry-run                   # what the rules would book
-bonk ledger bank classify                             # book it
-bonk ledger bank unclassify <transaction> --reason "verkeerde rekening"
+kushim ledger setup                                  # the starter chart, once
+kushim ledger post                                   # everything not yet posted
+kushim ledger post 2026-0001                         # or named documents only
+kushim ledger opening ./opening.csv --date 2026-01-01   # one opening entry, once
+kushim ledger chart                                  # accounts, kinds, control flags
+kushim ledger trial-balance --from 2026-01-01 --to 2026-03-31
+kushim ledger profit-and-loss --from 2026-01-01 --to 2026-03-31
+kushim ledger balance-sheet --as-of 2026-03-31
+kushim ledger reverse VK:2026-0001 --reason "wrong customer" --date 2026-04-02
+kushim ledger vat-return --year 2026 --month 3            # preview the aangifte
+kushim ledger vat-return --year 2026 --month 3 --prepare  # store it, with its basis
+kushim ledger icp --year 2026 --month 3                   # Opgaaf ICP, grouped by buyer
+kushim ledger icp --year 2026 --month 3 --out icp.csv    # the same listing as CSV
+kushim ledger package --year 2026 --out handoff/2026     # reports, returns, listings, documents
+kushim ledger close --year 2026 --month 3                 # refuse postings into the month
+kushim ledger close --year 2026 --month 3 --dry-run       # what would stop it
+kushim ledger reopen --year 2026 --month 3 --reason "vergeten factuur"
+kushim ledger close-year --year 2026                     # resultaatbestemming, then lock the year
+kushim ledger close-year --year 2026 --dry-run           # what it would move, and what stops it
+kushim ledger reopen-year --year 2026 --reason "vergeten factuur"
+kushim ledger open-items                                  # what customers still owe
+kushim ledger rebuild-open-items                          # fill the subledger of an older archive
+kushim ledger tax-codes                                   # the treatments a purchase can be filed under
+kushim ledger tax-code 2026-0042                          # what a document is filed under
+kushim ledger tax-code 2026-0042 NL-AE-GOODS              # put its reverse-charged VAT in 4b
+kushim ledger account 2026-0042 7100                     # where its cost lands, before it is posted
+kushim ledger post-manual --date 2026-03-01 --description "Bankkosten" --line "7100|debit|12.50" --line "1100|credit|12.50"
+kushim ledger reclassify IK:2026-0001 NL-AE-GOODS --reason "verkeerde rubriek"
+kushim ledger reclassify IK:2026-0001 --account 7100 --reason "verkeerde rekening" --date 2026-03-31
+kushim ledger open-items --kind payable --aging --as-of 2026-03-31
+kushim ledger fx import ~/Downloads/eurofxref-hist.csv   # ECB reference rates, offline
+kushim ledger fx set --currency GBP --date 2026-03-01 --rate 1.17
+kushim ledger fx override 2026-0002 --rate 1.18          # one document, before it posts
+kushim ledger fx show 2026-0002                          # the rate it would use, and why
+kushim ledger fx list --currency GBP
+kushim ledger bank add --name "Zakelijk" --iban NL91ABNA0417164300
+kushim ledger bank profile put rabo --file rabo.toml    # how to read this bank's CSV
+kushim ledger bank import ./statements/feb.camt.xml     # CAMT.053, MT940, or CSV
+kushim ledger bank import ./statements/feb.csv          # feb.toml beside it says how
+kushim ledger bank auto-match                           # where the payment names the invoice
+kushim ledger bank propose <transaction>                # what it could settle, groups included
+kushim ledger bank match <transaction> --item <a> --item <b>   # one payment, several invoices
+kushim ledger bank transactions --status new            # the unmatched queue
+kushim ledger bank rule add --name bankkosten --remittance kosten --direction out --account 7100
+kushim ledger bank classify --dry-run                   # what the rules would book
+kushim ledger bank classify                             # book it
+kushim ledger bank unclassify <transaction> --reason "verkeerde rekening"
 ```
 
 Entry numbers are per journal and year (`VK 2026-0001`), which is why a reversal
@@ -451,7 +451,7 @@ reversal-rather-than-delete rule as everywhere else in the ledger.
 
 A purchase also has to land somewhere in the chart. An invoice says what it cost,
 not where it belongs, and EN 16931 has no field whose meaning is "office costs" for
-every business, so `bonk ledger account <document> 7100` decides it — before the
+every business, so `kushim ledger account <document> 7100` decides it — before the
 posting, because the entry snapshots the account. Until somebody decides, the cost
 posts to `9999 Nog te rubriceren`, which is a real account with a real balance and
 a period close that will not accept it: a month cannot be locked while that account
@@ -462,7 +462,7 @@ exists for — because a posted document's own entry is append-only.
 One box needs a person to decide it. `AE` says "reverse charge" and nothing more,
 and the form asks reverse-charged goods (4b) and services (4a) separately, so a
 reverse-charged purchase lands in 4a unless someone names the treatment:
-`bonk ledger tax-code <document> NL-AE-GOODS` before posting puts its base and
+`kushim ledger tax-code <document> NL-AE-GOODS` before posting puts its base and
 VAT in 4b. The choice must be made before the entry is written — the posting
 snapshots the code on the lines it affects, so a report never re-reads a
 document's classification after it could have changed — and the deduction stays
@@ -470,13 +470,13 @@ in 5b either way. Sales need no code: their category and rate already decide the
 box.
 
 A treatment chosen wrongly after the fact has one command:
-`bonk ledger reclassify IK:2026-0001 NL-AE-GOODS --reason "..."` writes the
+`kushim ledger reclassify IK:2026-0001 NL-AE-GOODS --reason "..."` writes the
 reversal and the replacement in one transaction, so the supply is never counted
 twice or missing, and records a single `entry_reclassified` event that ties the
 pair together. It only touches the lines the code's category applies to, refuses a
 second correction of the same entry, and refuses a sale — a sale's box is already
 decided by its category and rate. For a correction no rule can express, the
-memorial journal is still there: `bonk ledger post-manual` writes the lines a
+memorial journal is still there: `kushim ledger post-manual` writes the lines a
 person composed, and a line may name a category, a rate, and a code
 (`--line "1620|credit|42.00|AE|21|NL-AE-GOODS"`), which is what puts the amount in
 4b. A memorial entry needs a description, must balance, and a line on the
@@ -485,8 +485,8 @@ other-rate account must carry a code, because its box cannot be derived.
 ### A demo archive to explore the window
 
 ```sh
-bonk demo-seed
-bonk gui
+kushim demo-seed
+kushim gui
 ```
 
 `demo-seed` writes an encrypted archive at the default location with a seller,
@@ -497,8 +497,8 @@ post to: a starter chart, every document posted, a bank account whose statement 
 waiting in the queue, and one rule that books the bank fees. It refuses to replace
 an existing archive unless `--force` is given. The data is deterministic: the same
 `--seed` and day produce the same numbers, dates, and amounts. The passphrase is
-`bonk-demo` unless `--passphrase` says otherwise. Everything is written through
-the same repository functions the rest of the app uses, so `bonk verify` passes
+`kushim-demo` unless `--passphrase` says otherwise. Everything is written through
+the same repository functions the rest of the app uses, so `kushim verify` passes
 on it.
 
 The archive holds two kinds of year on purpose. The year before its last one is
@@ -512,23 +512,23 @@ there is minutes of seeding for a year nobody opens.
 The statement is built to hold one of each thing the queue can show: a payment
 that names one invoice, a transfer that pays two at once, a part payment, two bank
 fees the rule recognises, interest nothing will ever match, and a supplier payment.
-`bonk ledger bank classify --dry-run` therefore prints two fees that would be
+`kushim ledger bank classify --dry-run` therefore prints two fees that would be
 posted, four payments reserved for their invoices, and one line with no rule at
 all — which is the whole behaviour of the guards in one screen. Every purchase is
 given an expense account before it is posted, so `9999 Nog te rubriceren` is empty
-and a period can be closed; `bonk ledger vat-return --year <year> --month <month>`
+and a period can be closed; `kushim ledger vat-return --year <year> --month <month>`
 is fileable on the demo for the same reason.
 
 ### The window
 
 Before the shell, the window shows a lock screen: the archive path, the keystore
 path, the passphrase, and the recovery route. Both paths have the platform's file
-picker beside a field that stays editable. `bonk gui --db … --keystore …` starts
+picker beside a field that stays editable. `kushim gui --db … --keystore …` starts
 the window on that archive; without the flags it uses the platform data directory.
 A passphrase given on the command line is deliberately ignored by the window:
 typing it at the lock screen is the only way in, and **Remember this device** is
 the supported shortcut for repeat use. Auto-unlocking from a flag or
-`BONK_PASSPHRASE` would turn an unattended launch into an open archive.
+`KUSHIM_PASSPHRASE` would turn an unattended launch into an open archive.
 
 The window is a four-tab shell: a thin icon rail on the left switches **Search**,
 **Customers**, **Ledger**, and **Settings**, with the content inset from the rail so
@@ -694,7 +694,7 @@ as **Write a recovery kit…**, and the command is what to use on a headless box
 
 Restoring is a file copy onto the clean machine: stop the application, put the
 database file and the kit's `keystore.bin` in one directory, then run
-`bonk verify` with the passphrase (or the recovery key) that was current when the
+`kushim verify` with the passphrase (or the recovery key) that was current when the
 kit was written.
 
 `verify` prints the audit chain head — sequence number, hash, and time. Two
@@ -707,7 +707,7 @@ report, so piping it to a file stays clean.
 `anchor heads.txt` writes that head to a plain-text file of checkpoints, one line
 of `timestamp sequence hash` per run, and does nothing when the head has not
 moved. Keep the file apart from the database — printed, mailed to yourself, in a
-repository — because that is the whole point: `bonk verify --anchor heads.txt`
+repository — because that is the whole point: `kushim verify --anchor heads.txt`
 checks that every recorded head is *still the link at its own position*. A hash
 chain alone cannot prove this, since whoever rewrites every row produces a chain
 that verifies against itself; a copy of a head that the attacker does not control
@@ -718,7 +718,7 @@ carry notes. Nothing secret is in it.
 not touched, the new keystore is only written after the sealed bytes have been
 unsealed in memory and confirmed to hold the same key, and the change is
 recorded in the audit chain. Backups made before the change still need the old
-passphrase. The new passphrase is prompted for twice; `BONK_NEW_PASSPHRASE` or
+passphrase. The new passphrase is prompted for twice; `KUSHIM_NEW_PASSPHRASE` or
 `--new-passphrase` exist for scripts and tests.
 
 `remember` keeps the archive key in the operating system's credential store —
@@ -904,7 +904,7 @@ The bundle, its manifest, and the update procedure are documented in
 
 ### Desktop
 
-`bonk gui` (or no subcommand) opens the same workflow: unlock, create the seller,
+`kushim gui` (or no subcommand) opens the same workflow: unlock, create the seller,
 add customers, edit lines with live totals and findings, save drafts, and issue.
 Both front ends call the same renderers: UBL is byte-identical whichever one
 issues the document, and the Issued screen can save the PDF.
@@ -933,14 +933,14 @@ bar for the chain and the payloads.
 
 The workspace **locks itself after 15 minutes without input** — any pointer or key
 event resets the clock — and the unlock screen asks for the passphrase again.
-`BONK_IDLE_MINUTES` overrides the limit, clamped to 1–1440.
+`KUSHIM_IDLE_MINUTES` overrides the limit, clamped to 1–1440.
 
 While a passphrase is being typed the unlock screen shows an estimate under the
 field: length, character variety, and a short list of phrases that are tried
 first, with one sentence of advice. A repeated pattern is worth its period
 rather than its length, so `abcabcabcabc` is not credited as twelve characters.
 Creating an archive asks for the passphrase twice, in the window and at the
-`bonk init` prompt; `--passphrase` and `BONK_PASSPHRASE` are single sources and
+`kushim init` prompt; `--passphrase` and `KUSHIM_PASSPHRASE` are single sources and
 are taken as they stand. A weak passphrase is reported, not refused — the
 estimate is a heuristic, and a gate that blocks the archive someone asked for
 would be worse than saying so once.
@@ -971,7 +971,7 @@ as `recovery-add` and `passphrase-reset`.
 | `crux` | Money, quantities, VAT, dates, IDs, invoice state machine | M0 |
 | `store` | Argon2id keystore, SQLCipher, migrations | M0 |
 | `app` | egui application library | M0 shell |
-| `cli` | The `bonk` binary: GUI + headless commands | M0 |
+| `cli` | The `kushim` binary: GUI + headless commands | M0 |
 | `conformance` | EN 16931 rules, codelists, profiles | M2 |
 | `conformance-official` | Vendored Schematron/XSLT, native binding | M2 |
 | `syntax` | UBL 2.1 / CII D16B writers and readers | M1/M3 |

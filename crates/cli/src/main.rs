@@ -1,5 +1,5 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
-//! The `bonk` executable: GUI by default, headless subcommands for support and CI.
+//! The `kushim` executable: GUI by default, headless subcommands for support and CI.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -26,7 +26,7 @@ use zeroize::Zeroizing;
 mod demo;
 
 #[derive(Parser)]
-#[command(name = "bonk", version, about = "Local-first e-invoicing client (working name)")]
+#[command(name = "kushim", version, about = "Local-first e-invoicing client")]
 struct Cli {
     /// Database file. Defaults to the platform data directory.
     #[arg(long, global = true)]
@@ -36,7 +36,7 @@ struct Cli {
     #[arg(long, global = true)]
     keystore: Option<PathBuf>,
 
-    /// Passphrase. Prefer `BONK_PASSPHRASE` or the interactive prompt.
+    /// Passphrase. Prefer `KUSHIM_PASSPHRASE` or the interactive prompt.
     #[arg(long, global = true)]
     passphrase: Option<String>,
 
@@ -107,7 +107,7 @@ enum Command {
     /// produces a chain that verifies against itself. A copy of a head kept
     /// elsewhere is what closes that gap, so this appends one line per new head
     /// to a file you keep apart from the database — printed, mailed to yourself,
-    /// or in a repository. `bonk verify --anchor <file>` checks it later.
+    /// or in a repository. `kushim verify --anchor <file>` checks it later.
     Anchor {
         /// File holding the checkpoints. Created on first use.
         file: PathBuf,
@@ -180,7 +180,7 @@ enum Command {
     #[command(name = "passphrase-change")]
     PassphraseChange {
         /// New passphrase. A flag is for tests and scripts; prefer the prompt or
-        /// `BONK_NEW_PASSPHRASE`.
+        /// `KUSHIM_NEW_PASSPHRASE`.
         #[arg(long)]
         new_passphrase: Option<String>,
     },
@@ -194,11 +194,11 @@ enum Command {
     #[command(name = "passphrase-reset")]
     PassphraseReset {
         /// Recovery key. A flag is for tests and scripts; prefer the prompt or
-        /// `BONK_RECOVERY_KEY`.
+        /// `KUSHIM_RECOVERY_KEY`.
         #[arg(long)]
         recovery_key: Option<String>,
         /// New passphrase. A flag is for tests and scripts; prefer the prompt or
-        /// `BONK_NEW_PASSPHRASE`.
+        /// `KUSHIM_NEW_PASSPHRASE`.
         #[arg(long)]
         new_passphrase: Option<String>,
     },
@@ -1037,7 +1037,7 @@ enum LedgerCommand {
     /// names the right box, or with the cost on the account that should have had
     /// it — in one transaction, so a correction never leaves the supply counted
     /// twice or missing. Use it when a purchase was posted before its treatment or
-    /// account was known; afterwards `bonk ledger tax-code` and `bonk ledger
+    /// account was known; afterwards `kushim ledger tax-code` and `kushim ledger
     /// account` are refused, because the posting snapshotted both.
     #[command(name = "reclassify")]
     Reclassify {
@@ -1128,7 +1128,7 @@ fn main() -> ExitCode {
         .spawn(Cli::parse)
         .expect("the parser thread starts")
         .join()
-        .unwrap_or_else(|_| Cli::parse_from(["bonk"]));
+        .unwrap_or_else(|_| Cli::parse_from(["kushim"]));
 
     match run(cli) {
         Ok(()) => ExitCode::SUCCESS,
@@ -1720,7 +1720,7 @@ fn run(cli: Cli) -> Result<(), CliError> {
 
             println!("watching: {}", directory.display());
             println!("polling:  every {every}s, reading files untouched for {quiet_for}s");
-            println!("note:     files already there are left alone; `bonk import` takes those");
+            println!("note:     files already there are left alone; `kushim import` takes those");
 
             let mut watcher = import::Watcher::new(quiet);
             loop {
@@ -2320,7 +2320,7 @@ fn ledger(access: &Access, database: &Path, keystore: &Path, command: LedgerComm
         LedgerCommand::Chart { all } => {
             let accounts = store::list_accounts(connection)?;
             if accounts.is_empty() {
-                println!("no chart of accounts yet; run `bonk ledger setup`");
+                println!("no chart of accounts yet; run `kushim ledger setup`");
                 return Ok(());
             }
             for account in accounts.iter().filter(|account| all || !account.archived) {
@@ -2341,7 +2341,7 @@ fn ledger(access: &Access, database: &Path, keystore: &Path, command: LedgerComm
             if store::load_account(connection, &debit)?.is_none() || store::load_account(connection, &credit)?.is_none()
             {
                 return Err(CliError::Input(
-                    "no chart of accounts yet; run `bonk ledger setup` first".to_owned(),
+                    "no chart of accounts yet; run `kushim ledger setup` first".to_owned(),
                 ));
             }
 
@@ -2973,7 +2973,7 @@ fn ledger(access: &Access, database: &Path, keystore: &Path, command: LedgerComm
             let assigned = store::assign_tax_code(connection, id, &code, &actor, &now)?;
             println!("assigned:  {} ({})", assigned.code, assigned.name);
             println!("box:       {} {}", assigned.rubriek.code(), assigned.rubriek.label());
-            println!("the next `bonk ledger post` puts the VAT there");
+            println!("the next `kushim ledger post` puts the VAT there");
             Ok(())
         }
         LedgerCommand::Account {
@@ -3021,7 +3021,7 @@ fn ledger(access: &Access, database: &Path, keystore: &Path, command: LedgerComm
             if store::load_account(connection, &debit)?.is_none() || store::load_account(connection, &credit)?.is_none()
             {
                 return Err(CliError::Input(
-                    "no chart of accounts yet; run `bonk ledger setup` first".to_owned(),
+                    "no chart of accounts yet; run `kushim ledger setup` first".to_owned(),
                 ));
             }
             let entry_date = LocalDate::parse_iso(&date)
@@ -3215,7 +3215,7 @@ fn choose_bank_account(
             .ok_or_else(|| CliError::Input(format!("no bank account matching {needle:?}"))),
         (None, [only]) => Ok(only.clone()),
         (None, []) => Err(CliError::Input(
-            "add a bank account first: `bonk ledger bank add --name <name>`".to_owned(),
+            "add a bank account first: `kushim ledger bank add --name <name>`".to_owned(),
         )),
         (None, many) => {
             let names: Vec<&str> = many.iter().map(|account| account.name.as_str()).collect();
@@ -3340,7 +3340,7 @@ fn bank(database: &store::Database, owner: SellerId, command: BankCommand, now: 
                 && store::import_profile::load(connection, profile)?.is_none()
             {
                 return Err(CliError::Input(format!(
-                    "no import profile {profile:?}; store one with `bonk ledger bank profile put`"
+                    "no import profile {profile:?}; store one with `kushim ledger bank profile put`"
                 )));
             }
             let account = store::BankAccount {
@@ -3365,7 +3365,7 @@ fn bank(database: &store::Database, owner: SellerId, command: BankCommand, now: 
         BankCommand::Accounts => {
             let accounts = store::list_bank_accounts(connection, owner)?;
             if accounts.is_empty() {
-                println!("no bank accounts; add one with `bonk ledger bank add --name <name>`");
+                println!("no bank accounts; add one with `kushim ledger bank add --name <name>`");
                 return Ok(());
             }
             for account in accounts {
@@ -3564,7 +3564,7 @@ fn bank(database: &store::Database, owner: SellerId, command: BankCommand, now: 
                 let rules = store::bank_rule::list(connection, owner)?;
                 if rules.is_empty() {
                     println!(
-                        "no bank rules; add one with `bonk ledger bank rule add --name <name> --account <code> --remittance <text>`"
+                        "no bank rules; add one with `kushim ledger bank rule add --name <name> --account <code> --remittance <text>`"
                     );
                     return Ok(());
                 }
@@ -3658,7 +3658,9 @@ fn bank(database: &store::Database, owner: SellerId, command: BankCommand, now: 
             ProfileCommand::List => {
                 let profiles = store::import_profile::list(connection)?;
                 if profiles.is_empty() {
-                    println!("no import profiles; store one with `bonk ledger bank profile put <name> --file <path>`");
+                    println!(
+                        "no import profiles; store one with `kushim ledger bank profile put <name> --file <path>`"
+                    );
                     return Ok(());
                 }
                 println!("{:<24} {:<14} updated", "name", "sha256");
@@ -3921,7 +3923,7 @@ fn seed_demo(
     println!();
     let (default_database, _) = app::default_paths();
     if default_database.as_path() == database {
-        println!("open the window with: bonk gui");
+        println!("open the window with: kushim gui");
     } else {
         println!(
             "note: the window opens {}; this archive is at {}",
@@ -4202,7 +4204,7 @@ fn resolve_passphrase(explicit: Option<String>) -> Result<Zeroizing<String>, Cli
 
 /// The passphrase for a new archive.
 ///
-/// A flag or `BONK_PASSPHRASE` is a single source and is taken as it stands. The
+/// A flag or `KUSHIM_PASSPHRASE` is a single source and is taken as it stands. The
 /// interactive prompt asks twice, because the archive is sealed with whatever
 /// was typed and a typo leaves it with no way in.
 fn resolve_creation_passphrase(explicit: Option<String>) -> Result<Zeroizing<String>, CliError> {
@@ -4217,7 +4219,7 @@ fn resolve_recovery_key(explicit: Option<String>) -> Result<Zeroizing<String>, C
     if let Some(value) = explicit.filter(|value| !value.trim().is_empty()) {
         return Ok(Zeroizing::new(value));
     }
-    if let Ok(value) = std::env::var("BONK_RECOVERY_KEY")
+    if let Ok(value) = std::env::var("KUSHIM_RECOVERY_KEY")
         && !value.trim().is_empty()
     {
         return Ok(Zeroizing::new(value));
@@ -4229,7 +4231,7 @@ fn resolve_recovery_key(explicit: Option<String>) -> Result<Zeroizing<String>, C
 fn resolve_new_passphrase(explicit: Option<String>) -> Result<Zeroizing<String>, CliError> {
     let value = match explicit.filter(|value| !value.is_empty()) {
         Some(value) => Zeroizing::new(value),
-        None => match std::env::var("BONK_NEW_PASSPHRASE") {
+        None => match std::env::var("KUSHIM_NEW_PASSPHRASE") {
             Ok(value) if !value.is_empty() => Zeroizing::new(value),
             _ => confirmed_prompt()?,
         },
@@ -4281,7 +4283,7 @@ fn from_flag_or_environment(explicit: Option<String>) -> Option<Zeroizing<String
     if let Some(value) = explicit.filter(|value| !value.is_empty()) {
         return Some(Zeroizing::new(value));
     }
-    std::env::var("BONK_PASSPHRASE")
+    std::env::var("KUSHIM_PASSPHRASE")
         .ok()
         .filter(|value| !value.is_empty())
         .map(Zeroizing::new)
@@ -4294,14 +4296,14 @@ mod tests {
     #[test]
     fn default_keystore_sits_beside_the_database() {
         let cli = Cli {
-            db: Some(PathBuf::from("/tmp/work/bonk.db")),
+            db: Some(PathBuf::from("/tmp/work/kushim.db")),
             keystore: None,
             passphrase: None,
             device: false,
             command: None,
         };
         let (database, keystore) = paths(&cli);
-        assert_eq!(database, PathBuf::from("/tmp/work/bonk.db"));
+        assert_eq!(database, PathBuf::from("/tmp/work/kushim.db"));
         assert_eq!(keystore, PathBuf::from("/tmp/work/keystore.bin"));
     }
 

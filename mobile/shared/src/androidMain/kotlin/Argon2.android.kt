@@ -1,6 +1,6 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
-import uniffi.bonkc.benchArgon2
+import uniffi.kushim.benchArgon2
 
 actual fun runArgon2Benchmark(): String {
     val report = benchArgon2()

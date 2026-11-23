@@ -60,11 +60,11 @@ install_apk() {
 install_apk "$apk"
 install_apk "$test_apk"
 
-export BONK_APK="$apk"
-export BONK_TEST_APK="$test_apk"
-export BONK_SKIP_INSTALL=1
+export KUSHIM_APK="$apk"
+export KUSHIM_TEST_APK="$test_apk"
+export KUSHIM_SKIP_INSTALL=1
 
-sh tools/run-android-test.sh - com.github.sdgoij.bonk.ArtefactDeterminismTest
-sh tools/run-android-test.sh - com.github.sdgoij.bonk.ShellScreenshotTest
-sh tools/run-android-test.sh - com.github.sdgoij.bonk.BudgetTest
-BONK_APK="$release_apk" sh tools/measure-cold-start.sh -
+sh tools/run-android-test.sh - com.github.sdgoij.kushim.ArtefactDeterminismTest
+sh tools/run-android-test.sh - com.github.sdgoij.kushim.ShellScreenshotTest
+sh tools/run-android-test.sh - com.github.sdgoij.kushim.BudgetTest
+KUSHIM_APK="$release_apk" sh tools/measure-cold-start.sh -

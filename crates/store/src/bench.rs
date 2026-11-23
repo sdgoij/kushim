@@ -44,7 +44,7 @@ pub fn seed_ledger(conn: &Connection, seller_id: SellerId, year: i32, entries: u
         let code = AccountCode::parse(account).map_err(|error| StoreError::Data(error.to_string()))?;
         if crate::ledger::load_account(conn, &code)?.is_none() {
             return Err(StoreError::Rejected(format!(
-                "account {account} does not exist; run `bonk ledger setup` first"
+                "account {account} does not exist; run `kushim ledger setup` first"
             )));
         }
     }

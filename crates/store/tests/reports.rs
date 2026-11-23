@@ -41,7 +41,7 @@ impl Books {
     fn traded() -> Self {
         let dir = TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-        let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
         seed_starter_chart(database.connection(), NOW).unwrap();
 
         let seller = SellerId::new();
@@ -336,7 +336,7 @@ fn a_reversal_takes_its_effect_out_of_the_reports() {
 fn an_empty_ledger_has_a_balanced_empty_balance_sheet() {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-    let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
     let seller = SellerId::new();
     insert_seller(
         database.connection(),

@@ -27,7 +27,7 @@ use crate::error::StoreError;
 pub const KEY_LEN: usize = 32;
 
 /// Service name the credential store lists our entries under.
-const SERVICE: &str = "bonk";
+const SERVICE: &str = "kushim";
 
 /// Where a device key is kept.
 pub trait DeviceStore {
@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn a_key_round_trips_and_is_forgotten() {
         let store = MemoryStore::default();
-        let keystore = Path::new("/tmp/bonk/keystore.bin");
+        let keystore = Path::new("/tmp/kushim/keystore.bin");
         let key = [7u8; KEY_LEN];
 
         assert!(recall(&store, keystore).unwrap().is_none());
@@ -203,7 +203,7 @@ mod tests {
     #[test]
     fn a_secret_of_the_wrong_length_is_refused() {
         let store = MemoryStore::default();
-        let keystore = Path::new("/tmp/bonk/keystore.bin");
+        let keystore = Path::new("/tmp/kushim/keystore.bin");
         store.put(&account(keystore), b"short").unwrap();
         assert!(recall(&store, keystore).is_err());
     }
@@ -226,13 +226,13 @@ mod tests {
             }
         }
 
-        assert!(exists(&Unreadable, Path::new("/tmp/bonk/keystore.bin")).unwrap());
+        assert!(exists(&Unreadable, Path::new("/tmp/kushim/keystore.bin")).unwrap());
     }
 
     #[test]
     fn exists_follows_remember_and_forget() {
         let store = MemoryStore::default();
-        let keystore = Path::new("/tmp/bonk/keystore.bin");
+        let keystore = Path::new("/tmp/kushim/keystore.bin");
         assert!(!exists(&store, keystore).unwrap());
         remember(&store, keystore, &[3u8; KEY_LEN]).unwrap();
         assert!(exists(&store, keystore).unwrap());
@@ -242,12 +242,12 @@ mod tests {
 
     #[test]
     fn the_account_is_stable_and_does_not_name_the_path() {
-        let first = account(Path::new("/tmp/bonk/keystore.bin"));
-        assert_eq!(first, account(Path::new("/tmp/bonk/keystore.bin")));
+        let first = account(Path::new("/tmp/kushim/keystore.bin"));
+        assert_eq!(first, account(Path::new("/tmp/kushim/keystore.bin")));
         assert_ne!(first, account(Path::new("/tmp/other/keystore.bin")));
         assert!(first.starts_with("archive-"));
         assert!(
-            !first.contains("bonk"),
+            !first.contains("kushim"),
             "a path must not appear in the credential store's UI"
         );
         assert!(!first.contains("keystore"));

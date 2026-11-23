@@ -2455,7 +2455,7 @@ impl Workspace {
         let stamp = store::now_rfc3339();
         let (sender, updates) = mpsc::channel();
         let worker = std::thread::Builder::new()
-            .name("bonk-backup".to_owned())
+            .name("kushim-backup".to_owned())
             .spawn(move || {
                 let outcome = match store::Database::open_with_key(&path, &dek) {
                     Ok(database) => {
@@ -3021,7 +3021,7 @@ impl Workspace {
         let started = store::now_rfc3339();
         let (sender, updates) = mpsc::channel();
         let worker = std::thread::Builder::new()
-            .name("bonk-health-check".to_owned())
+            .name("kushim-health-check".to_owned())
             .spawn(move || {
                 // The page scan is opaque, so it gets its own indeterminate
                 // stage rather than a bar that never leaves zero.
@@ -6473,7 +6473,7 @@ mod tests {
     fn seeded_archive() -> (tempfile::TempDir, Database, SellerId) {
         let dir = tempfile::TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-        let mut database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let mut database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
 
         let seller = seller();
         insert_seller(database.connection(), &seller, NOW).unwrap();
@@ -6693,7 +6693,7 @@ mod tests {
     fn a_document_draws_with_the_layout_it_names() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -6739,7 +6739,7 @@ mod tests {
     fn every_tab_draws_without_panicking() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -6839,7 +6839,7 @@ mod tests {
     fn the_layout_survives_a_scaled_display() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7000,7 +7000,7 @@ mod tests {
     fn a_watched_folder_imports_a_dropped_invoice() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7045,7 +7045,7 @@ mod tests {
     fn a_drop_that_is_not_an_invoice_does_not_stop_the_watch() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7146,7 +7146,7 @@ mod tests {
     fn a_remembered_watch_comes_back_without_importing_the_backlog() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7180,7 +7180,7 @@ mod tests {
     fn the_workspace_draws_without_panicking() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7528,7 +7528,7 @@ mod tests {
     fn session_with_one_issued() -> (tempfile::TempDir, Session, SellerRecord) {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7704,7 +7704,7 @@ mod tests {
     fn the_preview_toggle_turns_the_page_on_and_off() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7735,7 +7735,7 @@ mod tests {
     fn the_composer_draws_over_the_list() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7763,7 +7763,7 @@ mod tests {
     fn a_draft_row_reopens_it_in_the_composer() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7794,7 +7794,7 @@ mod tests {
     fn a_draft_editor_draws_inside_its_row() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7833,7 +7833,7 @@ mod tests {
     fn the_device_switch_remembers_and_forgets() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7861,7 +7861,7 @@ mod tests {
     fn turning_the_switch_on_needs_the_passphrase() {
         let dir = tempfile::TempDir::new().unwrap();
         let session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -7914,7 +7914,7 @@ mod tests {
     fn the_line_name_field_takes_half_a_real_window() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )
@@ -8041,7 +8041,7 @@ mod tests {
     fn a_received_document_shows_its_match_and_can_be_settled() {
         let dir = tempfile::TempDir::new().unwrap();
         let mut session = Session::create(
-            dir.path().join("bonk.db"),
+            dir.path().join("kushim.db"),
             dir.path().join("keystore.bin"),
             "passphrase",
         )

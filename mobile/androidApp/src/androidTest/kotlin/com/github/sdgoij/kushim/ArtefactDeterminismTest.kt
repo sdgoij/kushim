@@ -1,8 +1,8 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.bonkc.artefactHashes
+import uniffi.kushim.artefactHashes
 
 /**
  * The sample invoice must render to the same bytes on the device as on the host.
@@ -16,18 +16,18 @@ class ArtefactDeterminismTest {
     fun the_sample_invoice_matches_the_host() {
         val hashes = artefactHashes()
 
-        assertEquals("UBL length", 4305UL, hashes.ublLen)
-        // The PDF moved when the bundled font did: the CFF subset of Noto Serif CJK
-        // is smaller than the TrueType one it replaced.
-        assertEquals("PDF length", 15527UL, hashes.pdfLen)
+        // The renderer identity is written into the UBL and into the PDF metadata,
+        // so the name change moved both artefacts; these are the host values.
+        assertEquals("UBL length", 4309UL, hashes.ublLen)
+        assertEquals("PDF length", 15936UL, hashes.pdfLen)
         assertEquals(
             "UBL SHA-256",
-            "7d7f70eb279208887daae6a0099bf1c61359a709f7fc0e6fb565ea7e9c5f7020",
+            "a0e8eab64ed7ba9862d6a928c3f70dbd2c010dc0f3df362ac084124e654c352e",
             hashes.ublSha256,
         )
         assertEquals(
             "PDF SHA-256",
-            "0f6aede0989aeecdd72841b0faf8b73f5b6b21d07ce2d4eeaab9f682f3ca0351",
+            "15351eadfc2f945eaa501ff48a474735d196ac4e4aa08171618ade9120615331",
             hashes.pdfSha256,
         )
     }

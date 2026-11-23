@@ -11,7 +11,7 @@ set -eu
 serial=${1:--}
 test_class=${2:-}
 shift 2
-package=com.github.sdgoij.bonk
+package=com.github.sdgoij.kushim
 
 # CI hands over the APKs it built; a local run uses the Gradle output. The APKs are
 # split per ABI, so take whichever this host built.
@@ -25,11 +25,11 @@ default_apk() {
     printf '%s' "$1"
 }
 
-apk=${BONK_APK:-$(default_apk \
+apk=${KUSHIM_APK:-$(default_apk \
     mobile/androidApp/build/outputs/apk/debug/androidApp-arm64-v8a-debug.apk \
     mobile/androidApp/build/outputs/apk/debug/androidApp-x86_64-debug.apk \
     mobile/androidApp/build/outputs/apk/debug/androidApp-debug.apk)}
-test_apk=${BONK_TEST_APK:-mobile/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk}
+test_apk=${KUSHIM_TEST_APK:-mobile/androidApp/build/outputs/apk/androidTest/debug/androidApp-debug-androidTest.apk}
 
 if [ -z "$test_class" ]; then
     echo "error: name the test class to run" >&2
@@ -63,7 +63,7 @@ if ! adb_of get-state >/dev/null 2>&1; then
     exit 1
 fi
 
-if [ "${BONK_SKIP_INSTALL:-0}" != "1" ]; then
+if [ "${KUSHIM_SKIP_INSTALL:-0}" != "1" ]; then
     adb_of install -r "$apk" >/dev/null
     adb_of install -r "$test_apk" >/dev/null
 fi

@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -361,7 +361,7 @@ fun App() {
     // The register keeps its side and filters while a document is open.
     val register = remember { DocumentRegisterState() }
 
-    BonkTheme {
+    KushimTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val width = WindowWidth.of(maxWidth)
@@ -402,7 +402,7 @@ fun App() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Spacer(Modifier.height(if (tall) 72.dp else 16.dp))
-                            Text("Bonk", style = MaterialTheme.typography.headlineLarge)
+                            Text("Kushim", style = MaterialTheme.typography.headlineLarge)
                             Spacer(Modifier.height(8.dp))
                             Text(
                                 text = strings.tagline,

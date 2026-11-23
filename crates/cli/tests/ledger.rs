@@ -5,12 +5,12 @@ use std::process::Command;
 
 use tempfile::TempDir;
 
-fn bonk() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_bonk"))
+fn kushim() -> Command {
+    Command::new(env!("CARGO_BIN_EXE_kushim"))
 }
 
-fn bonk_ok(args: &[&str]) -> String {
-    let output = bonk().args(args).output().expect("binary runs");
+fn kushim_ok(args: &[&str]) -> String {
+    let output = kushim().args(args).output().expect("binary runs");
     assert!(
         output.status.success(),
         "command failed: {}\nstdout: {}",
@@ -42,13 +42,13 @@ struct Archive {
 impl Archive {
     fn new() -> Self {
         let dir = TempDir::new().expect("temp dir");
-        let database = dir.path().join("bonk.db").to_str().expect("utf-8").to_owned();
+        let database = dir.path().join("kushim.db").to_str().expect("utf-8").to_owned();
         let keystore = dir.path().join("keystore.bin").to_str().expect("utf-8").to_owned();
         let out = dir.path().join("out");
         std::fs::create_dir_all(&out).expect("out dir");
         let out = out.to_str().expect("utf-8").to_owned();
 
-        bonk_ok(&[
+        kushim_ok(&[
             "init",
             "--db",
             &database,
@@ -59,7 +59,7 @@ impl Archive {
         ]);
 
         let seller = field(
-            &bonk_ok(&[
+            &kushim_ok(&[
                 "seller-add",
                 "--name",
                 "Boeken BV",
@@ -85,7 +85,7 @@ impl Archive {
             "seller:",
         );
         let customer = field(
-            &bonk_ok(&[
+            &kushim_ok(&[
                 "customer-add",
                 "--name",
                 "Klant BV",
@@ -108,7 +108,7 @@ impl Archive {
         );
 
         let draft = field(
-            &bonk_ok(&[
+            &kushim_ok(&[
                 "draft-new",
                 "--seller",
                 &seller,
@@ -131,7 +131,7 @@ impl Archive {
             ]),
             "draft:",
         );
-        bonk_ok(&[
+        kushim_ok(&[
             "issue",
             &draft,
             "--out",
@@ -194,12 +194,12 @@ impl Archive {
     fn run(&self, command: &[&str]) -> String {
         let args = self.args(command);
         let borrowed: Vec<&str> = args.iter().map(String::as_str).collect();
-        bonk_ok(&borrowed)
+        kushim_ok(&borrowed)
     }
 
     fn fail(&self, command: &[&str]) -> String {
         let args = self.args(command);
-        let output = bonk().args(&args).output().expect("binary runs");
+        let output = kushim().args(&args).output().expect("binary runs");
         assert!(
             !output.status.success(),
             "command unexpectedly succeeded: {}",
@@ -254,7 +254,7 @@ fn the_ledger_runs_from_setup_to_a_reversal() {
 
     // Posting before the chart exists says what to do about it.
     let said = archive.fail(&["ledger", "post"]);
-    assert!(said.contains("bonk ledger setup"), "{said}");
+    assert!(said.contains("kushim ledger setup"), "{said}");
 
     let said = archive.run(&["ledger", "setup"]);
     assert!(said.contains("accounts added:"), "{said}");
@@ -473,7 +473,7 @@ fn an_mt940_statement_settles_the_same_invoice_by_its_remittance_text() {
     let statement = archive.dir.path().join("feb.940");
     std::fs::write(
         &statement,
-        ":20:BONK-2026-02
+        ":20:KUSHIM-2026-02
 :25:NL91ABNA0417164300
 :28C:1/1
 :60F:C260201EUR0,00
@@ -518,7 +518,7 @@ fn a_statement_that_does_not_add_up_is_refused_with_the_difference_named() {
     let statement = archive.dir.path().join("broken.940");
     std::fs::write(
         &statement,
-        ":20:BONK-2026-02
+        ":20:KUSHIM-2026-02
 :60F:C260201EUR100,00
 :61:260220C121,00NTRF
 :62F:C260228EUR121,00
@@ -551,7 +551,7 @@ fn one_payment_settles_two_invoices_with_one_entry() {
     let statement = archive.dir.path().join("two.940");
     std::fs::write(
         &statement,
-        ":20:BONK-2026-02\n:60F:C260201EUR0,00\n:61:260220C181,50NTRF\n:86:Facturen 2026-0001 en 2026-0002\n:62F:C260228EUR181,50\n",
+        ":20:KUSHIM-2026-02\n:60F:C260201EUR0,00\n:61:260220C181,50NTRF\n:86:Facturen 2026-0001 en 2026-0002\n:62F:C260228EUR181,50\n",
     )
     .expect("statement");
     archive.run(&["ledger", "bank", "import", statement.to_str().expect("utf-8")]);
@@ -792,7 +792,7 @@ fn a_rule_books_a_bank_fee_without_an_invoice() {
     let statement = archive.dir.path().join("feb.940");
     std::fs::write(
         &statement,
-        ":20:BONK-2026-02\n:60F:C260201EUR100,00\n:61:260220D12,50NTRF\n:86:Bankkosten februari\n:62F:C260228EUR87,50\n",
+        ":20:KUSHIM-2026-02\n:60F:C260201EUR100,00\n:61:260220D12,50NTRF\n:86:Bankkosten februari\n:62F:C260228EUR87,50\n",
     )
     .expect("statement");
     archive.run(&["ledger", "bank", "import", statement.to_str().expect("utf-8")]);
@@ -1336,7 +1336,7 @@ fn an_evidence_bundle_carries_the_books_the_invoice_landed_in() {
 
     // The verifier needs neither the archive nor the keystore: the bundle
     // explains its own books.
-    let said = bonk_ok(&["evidence-verify", bundle.to_str().expect("utf-8")]);
+    let said = kushim_ok(&["evidence-verify", bundle.to_str().expect("utf-8")]);
     assert!(said.contains("bundle verified"), "{said}");
     assert!(said.contains("1 entries, 1 VAT return(s)"), "{said}");
 }

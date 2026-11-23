@@ -9,7 +9,7 @@ kotlin {
     jvmToolchain(17)
 
     android {
-        namespace = "com.github.sdgoij.bonk.shared"
+        namespace = "com.github.sdgoij.kushim.shared"
         compileSdk = 37
         minSdk = 26
 

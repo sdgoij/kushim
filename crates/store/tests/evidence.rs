@@ -22,7 +22,7 @@ fn party(name: &str) -> Party {
 fn archived() -> (TempDir, Database, SellerId, DocumentId) {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-    let mut database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let mut database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
 
     let seller_id = SellerId::new();
     insert_seller(

@@ -13,7 +13,7 @@ const CANARY: &str = "CANARY-Supplier-9d3f2";
 fn fixture() -> (TempDir, Database, KeyStore) {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-    let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
 
     let mut party = Party::new(CANARY, Address::new("Amsterdam", CountryCode::NL));
     party.vat_id = Some("NL123456782B01".to_owned());

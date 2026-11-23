@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn only_xml_documents_are_collected_and_sorted() {
-        let directory = std::env::temp_dir().join(format!("bonk-conformance-{}", std::process::id()));
+        let directory = std::env::temp_dir().join(format!("kushim-conformance-{}", std::process::id()));
         let _ = fs::remove_dir_all(&directory);
         fs::create_dir_all(&directory).unwrap();
         fs::write(directory.join("b.xml"), "<x/>").unwrap();
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn an_empty_directory_is_not_a_success() {
-        let directory = std::env::temp_dir().join(format!("bonk-conformance-empty-{}", std::process::id()));
+        let directory = std::env::temp_dir().join(format!("kushim-conformance-empty-{}", std::process::id()));
         let _ = fs::remove_dir_all(&directory);
         fs::create_dir_all(&directory).unwrap();
         assert_eq!(xml_files(&directory).unwrap().len(), 0);

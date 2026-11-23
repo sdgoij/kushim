@@ -1,8 +1,8 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
-import uniffi.bonkc.Counter
-import uniffi.bonkc.echoBytes
-import uniffi.bonkc.hello
+import uniffi.kushim.Counter
+import uniffi.kushim.echoBytes
+import uniffi.kushim.hello
 
 actual fun greet(name: String): String {
     val counter = Counter()

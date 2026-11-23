@@ -110,7 +110,7 @@ pub fn check(path: impl AsRef<Path>, conn: &Connection) -> Result<AnchorCheck, S
     let anchors = read(path.as_ref())?;
     if anchors.is_empty() {
         return Err(rejected(
-            "the anchor file has no checkpoints yet; run `bonk anchor` while the archive is sound",
+            "the anchor file has no checkpoints yet; run `kushim anchor` while the archive is sound",
         ));
     }
     agree(conn, &anchors)?;

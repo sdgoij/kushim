@@ -13,5 +13,5 @@ esac
 
 strip="$ndk/toolchains/llvm/prebuilt/$host/bin/llvm-strip$exe"
 for abi in arm64-v8a x86_64; do
-    "$strip" --strip-unneeded "mobile/androidApp/src/main/jniLibs/$abi/libbonkc.so"
+    "$strip" --strip-unneeded "mobile/androidApp/src/main/jniLibs/$abi/libkushim.so"
 done

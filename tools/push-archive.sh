@@ -7,7 +7,7 @@
 # Whatever archive the device already holds is copied to files/archive.bak
 # before it is replaced.
 #
-# Usage: push-archive.sh <device-serial|-> <directory with bonk.db and keystore.bin> <passphrase>
+# Usage: push-archive.sh <device-serial|-> <directory with kushim.db and keystore.bin> <passphrase>
 set -eu
 
 serial=${1:--}
@@ -15,11 +15,11 @@ source_dir=${2:-}
 passphrase=${3:-}
 
 # The app id is part of the project, not of the device.
-package=com.github.sdgoij.bonk
-staging=/data/local/tmp/bonk-demo
+package=com.github.sdgoij.kushim
+staging=/data/local/tmp/kushim-demo
 
-if [ -z "$source_dir" ] || [ ! -f "$source_dir/bonk.db" ] || [ ! -f "$source_dir/keystore.bin" ]; then
-    echo "error: give a directory holding bonk.db and keystore.bin" >&2
+if [ -z "$source_dir" ] || [ ! -f "$source_dir/kushim.db" ] || [ ! -f "$source_dir/keystore.bin" ]; then
+    echo "error: give a directory holding kushim.db and keystore.bin" >&2
     exit 2
 fi
 
@@ -69,7 +69,7 @@ fi
 # The remote command is quoted for the device shell: adb joins its arguments
 # with spaces and does not re-quote them.
 adb_of shell "run-as $package sh -c 'mkdir -p files/archive files/archive.bak; \
-    [ -f files/archive/bonk.db ] && cp files/archive/bonk.db files/archive.bak/bonk.db; \
+    [ -f files/archive/kushim.db ] && cp files/archive/kushim.db files/archive.bak/kushim.db; \
     [ -f files/archive/keystore.bin ] && cp files/archive/keystore.bin files/archive.bak/keystore.bin; true'"
 
 # The app must not hold the database open while it is replaced.
@@ -77,13 +77,13 @@ adb_of shell am force-stop "$package"
 
 adb_of shell rm -rf "$staging"
 adb_of shell mkdir -p "$staging"
-adb_of push "$source_dir/bonk.db" "$staging/bonk.db" >/dev/null
+adb_of push "$source_dir/kushim.db" "$staging/kushim.db" >/dev/null
 adb_of push "$source_dir/keystore.bin" "$staging/keystore.bin" >/dev/null
-adb_of shell chmod 644 "$staging/bonk.db" "$staging/keystore.bin"
+adb_of shell chmod 644 "$staging/kushim.db" "$staging/keystore.bin"
 
 # A stale write-ahead log would be replayed over the new database.
-adb_of shell "run-as $package sh -c 'rm -f files/archive/bonk.db-wal files/archive/bonk.db-shm; \
-    cp $staging/bonk.db $staging/keystore.bin files/archive/'"
+adb_of shell "run-as $package sh -c 'rm -f files/archive/kushim.db-wal files/archive/kushim.db-shm; \
+    cp $staging/kushim.db $staging/keystore.bin files/archive/'"
 
 adb_of shell rm -rf "$staging"
 

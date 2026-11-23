@@ -11,7 +11,7 @@
 #
 # The hook checks the working tree, not the index: this repository commits after
 # the gates pass, and splitting staged from unstaged content would need a stash.
-# Set BONK_PRECOMMIT_TESTS=1 to run the workspace tests as well.
+# Set KUSHIM_PRECOMMIT_TESTS=1 to run the workspace tests as well.
 
 set -eu
 
@@ -45,7 +45,7 @@ else
     echo "pre-commit: install it with 'cargo install cargo-deny --locked'" >&2
 fi
 
-if [ "${BONK_PRECOMMIT_TESTS:-0}" = "1" ]; then
+if [ "${KUSHIM_PRECOMMIT_TESTS:-0}" = "1" ]; then
     echo "pre-commit: test --workspace"
     run_cargo test --workspace
 fi

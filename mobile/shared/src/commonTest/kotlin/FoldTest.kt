@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

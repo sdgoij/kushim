@@ -34,7 +34,7 @@ untouched for a quiet period (`--quiet-for`, 5 seconds by default):
 - Subdirectories and editor leftovers (`.tmp`, `.part`, `.crdownload`, `.swp`,
   `~$…`, dotfiles) are ignored.
 
-`bonk watch <dir>` runs the loop; `--every` sets the poll interval. Idempotence is
+`kushim watch <dir>` runs the loop; `--every` sets the poll interval. Idempotence is
 not the watcher's job: the pipeline already refuses the same bytes and the same
 supplier number twice.
 
@@ -44,7 +44,7 @@ supplier number twice.
   enters the build.
 - Latency is the poll interval plus the quiet period — seconds, not milliseconds.
   For an ERP push that is invisible; for an interactive drag-and-drop it is not,
-  and `bonk import` remains the immediate path.
+  and `kushim import` remains the immediate path.
 - A file whose modification time is in the future (clock skew on the sharing host)
   is not read until the clock catches up. That is reported by absence, not by an
   error.

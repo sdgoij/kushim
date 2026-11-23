@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -90,7 +90,7 @@ class ShellScreenshotTest {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Spacer(Modifier.height(16.dp))
-                                Text("Bonk", style = MaterialTheme.typography.headlineLarge)
+                                Text("Kushim", style = MaterialTheme.typography.headlineLarge)
                                 Spacer(Modifier.height(8.dp))
                                 Text(
                                     strings.tagline,

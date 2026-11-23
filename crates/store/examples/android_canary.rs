@@ -55,7 +55,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 fn create(directory: &Path) -> Result<(), Box<dyn Error>> {
     store::permissions::private_directory(directory)?;
 
-    let database_path = directory.join("bonk.db");
+    let database_path = directory.join("kushim.db");
     let keystore_path = directory.join("keystore.bin");
     remove_previous(&database_path);
     remove_previous(&keystore_path);
@@ -94,7 +94,7 @@ struct Checked {
 }
 
 fn check(directory: &Path) -> Result<Checked, Box<dyn Error>> {
-    let database_path = directory.join("bonk.db");
+    let database_path = directory.join("kushim.db");
     let keystore_path = directory.join("keystore.bin");
     let scanned = scan(&database_path)?;
 

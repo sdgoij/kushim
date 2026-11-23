@@ -46,7 +46,7 @@ consumed after the next successful passphrase unlock, when the open archive can
 append `device_forgotten` to the audit chain.
 
 A fresh Keystore key removes wrapped copies it can no longer open, and the alias
-is versioned (`bonk.device.biometric`) so a key made under an older policy is not
+is versioned (`kushim.device.biometric`) so a key made under an older policy is not
 reused. `keyring` stays a desktop dependency. The FFI error field is `detail`
 rather than `message` because the Kotlin generator emits a broken `message`
 member, and the archive lock is named `lock` because `close` collides with the

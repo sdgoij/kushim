@@ -6,13 +6,13 @@ use std::process::Command;
 
 use tempfile::TempDir;
 
-fn bonk() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_bonk"))
+fn kushim() -> Command {
+    Command::new(env!("CARGO_BIN_EXE_kushim"))
 }
 
 /// Runs the binary and returns stdout, asserting it succeeded.
-fn bonk_ok(args: &[&str]) -> String {
-    let output = bonk().args(args).output().expect("binary runs");
+fn kushim_ok(args: &[&str]) -> String {
+    let output = kushim().args(args).output().expect("binary runs");
     assert!(
         output.status.success(),
         "command failed: {}\nstdout: {}",
@@ -32,10 +32,10 @@ fn field(output: &str, prefix: &str) -> String {
 }
 
 fn run_init(dir: &TempDir) -> (String, String) {
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "init",
             "--db",
@@ -66,7 +66,7 @@ fn changing_the_passphrase_keeps_the_archive_openable() {
     let old = "correct horse battery staple";
     let new = "a much better passphrase";
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-change",
             "--db",
@@ -89,7 +89,7 @@ fn changing_the_passphrase_keeps_the_archive_openable() {
     assert!(said.contains("passphrase changed"), "{said}");
 
     // The archive opens with the new passphrase, and the change is on the chain.
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -107,7 +107,7 @@ fn changing_the_passphrase_keeps_the_archive_openable() {
     assert!(verified.contains("audit:    1 events verified"), "{verified}");
 
     // The old passphrase does not.
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -125,7 +125,7 @@ fn changing_the_passphrase_keeps_the_archive_openable() {
     );
 
     // A refused change leaves the keystore alone.
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-change",
             "--db",
@@ -140,7 +140,7 @@ fn changing_the_passphrase_keeps_the_archive_openable() {
         .output()
         .expect("binary runs");
     assert!(!output.status.success());
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -165,7 +165,7 @@ fn a_recovery_key_is_printed_once_and_the_passphrase_still_works() {
     let passphrase = "correct horse battery staple";
 
     let size_before = std::fs::metadata(&keystore).expect("keystore").len();
-    let output = bonk()
+    let output = kushim()
         .args([
             "recovery-add",
             "--db",
@@ -201,7 +201,7 @@ fn a_recovery_key_is_printed_once_and_the_passphrase_still_works() {
     assert!(size_after > size_before, "the recovery wrap is appended");
 
     // The passphrase keeps working, and the chain records the new route.
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -226,7 +226,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
     let old_passphrase = "correct horse battery staple";
     let new_passphrase = "a fresh passphrase";
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "recovery-add",
             "--db",
@@ -247,7 +247,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
         .to_owned();
 
     // Forget the passphrase and come back with the key instead.
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-reset",
             "--db",
@@ -277,7 +277,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
     assert!(said.contains("no longer works"), "{said}");
 
     // The new passphrase opens the archive; the old one does not.
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -293,7 +293,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
     let verified = String::from_utf8_lossy(&output.stdout);
     assert!(verified.contains("audit:    2 events verified"), "{verified}");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -308,7 +308,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
     assert!(!output.status.success(), "the forgotten passphrase stays forgotten");
 
     // The key that was used for the reset no longer opens the archive...
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-reset",
             "--db",
@@ -325,7 +325,7 @@ fn a_lost_passphrase_can_be_reset_with_the_recovery_key() {
     assert!(!output.status.success(), "a used recovery key is rotated away");
 
     // ...and the rotated one does.
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-reset",
             "--db",
@@ -351,7 +351,7 @@ fn reset_without_a_recovery_key_says_so() {
     let dir = TempDir::new().expect("temp dir");
     let (database, keystore) = run_init(&dir);
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "passphrase-reset",
             "--db",
@@ -376,7 +376,7 @@ fn a_support_bundle_can_be_written_and_previewed() {
     let (database, keystore) = run_init(&dir);
     let bundle = dir.path().join("support");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "support-bundle",
             "--db",
@@ -396,7 +396,7 @@ fn a_support_bundle_can_be_written_and_previewed() {
         String::from_utf8_lossy(&output.stderr)
     );
     let said = String::from_utf8_lossy(&output.stdout);
-    assert!(said.contains("bonk support bundle"), "{said}");
+    assert!(said.contains("kushim support bundle"), "{said}");
     assert!(
         said.contains(&format!("version:    {}", env!("CARGO_PKG_VERSION"))),
         "the bundle must name the version it came from: {said}"
@@ -412,7 +412,7 @@ fn init_then_verify() {
     let dir = TempDir::new().expect("temp dir");
     let (database, keystore) = run_init(&dir);
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -455,13 +455,13 @@ fn migrate_down_is_guarded_and_respects_irreversible_migrations() {
 
     let mut args = vec!["migrate-down", "--to", "2"];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("without --yes"));
 
     let mut args = vec!["migrate-down", "--to", "2", "--yes"];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("no down migration"),
@@ -472,7 +472,7 @@ fn migrate_down_is_guarded_and_respects_irreversible_migrations() {
     let mut args = vec!["verify"];
     args.extend(common);
     assert!(
-        bonk_ok(&args).contains("schema:   22"),
+        kushim_ok(&args).contains("schema:   22"),
         "a refused rollback leaves the schema where it was"
     );
 }
@@ -482,7 +482,7 @@ fn verify_rejects_a_wrong_passphrase() {
     let dir = TempDir::new().expect("temp dir");
     let (database, keystore) = run_init(&dir);
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -505,7 +505,7 @@ fn verify_never_creates_a_missing_database() {
     let (_, keystore) = run_init(&dir);
     let missing = dir.path().join("nope.db");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "verify",
             "--db",
@@ -525,7 +525,7 @@ fn verify_never_creates_a_missing_database() {
 #[test]
 fn full_slice_through_the_cli() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
     let output_dir = dir.path().join("out");
     let db = database.to_str().expect("utf-8");
@@ -535,7 +535,7 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["init"];
     args.extend(common);
-    bonk_ok(&args);
+    kushim_ok(&args);
 
     let mut args = vec![
         "seller-add",
@@ -555,7 +555,7 @@ fn full_slice_through_the_cli() {
         "12345678",
     ];
     args.extend(common);
-    let seller = field(&bonk_ok(&args), "seller:");
+    let seller = field(&kushim_ok(&args), "seller:");
 
     let mut args = vec![
         "customer-add",
@@ -571,7 +571,7 @@ fn full_slice_through_the_cli() {
         "0106:87654321",
     ];
     args.extend(common);
-    let customer = field(&bonk_ok(&args), "customer:");
+    let customer = field(&kushim_ok(&args), "customer:");
 
     // Templates beside the archive are the layouts a document can be drawn with,
     // and a draft names the one it wants. They exist before the draft does, so
@@ -606,13 +606,13 @@ fn full_slice_through_the_cli() {
         "compact",
     ];
     args.extend(common);
-    let draft_output = bonk_ok(&args);
+    let draft_output = kushim_ok(&args);
     let draft = field(&draft_output, "draft:");
     assert!(draft_output.contains("gross: 121.00"), "{draft_output}");
 
     let mut args = vec!["issue", &draft, "--out", out];
     args.extend(common);
-    let issued_output = bonk_ok(&args);
+    let issued_output = kushim_ok(&args);
     assert!(issued_output.contains("issued: 2026-0001"), "{issued_output}");
 
     let xml = std::fs::read_to_string(output_dir.join("2026-0001.xml")).expect("ubl file");
@@ -658,7 +658,7 @@ fn full_slice_through_the_cli() {
         "no-such-layout",
     ];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     let said = String::from_utf8_lossy(&output.stderr);
     assert!(said.contains("no template named no-such-layout"), "{said}");
@@ -669,12 +669,12 @@ fn full_slice_through_the_cli() {
     let evidence_dir = dir.path().join("evidence");
     let mut args = vec!["evidence", "2026-0001", "--out", evidence_dir.to_str().expect("utf-8")];
     args.extend(common);
-    let said = bonk_ok(&args);
+    let said = kushim_ok(&args);
     assert!(said.contains("verified:  ok"), "{said}");
     assert!(said.contains("document:  2026-0001 (outbound, issued)"), "{said}");
 
     let args = vec!["evidence-verify", evidence_dir.to_str().expect("utf-8")];
-    let said = bonk_ok(&args);
+    let said = kushim_ok(&args);
     assert!(said.contains("bundle verified"), "{said}");
     assert!(said.contains("files:"), "{said}");
 
@@ -694,14 +694,14 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["credit-note", "2026-0001", "--date", "2026-12-15"];
     args.extend(common);
-    let credit_output = bonk_ok(&args);
+    let credit_output = kushim_ok(&args);
     assert!(credit_output.contains("corrects:    2026-0001"), "{credit_output}");
     assert!(credit_output.contains("gross:       121.00"), "{credit_output}");
     let credit = field(&credit_output, "credit note:");
 
     let mut args = vec!["issue", &credit, "--out", out];
     args.extend(common);
-    let credit_issued = bonk_ok(&args);
+    let credit_issued = kushim_ok(&args);
     assert!(credit_issued.contains("issued: 2026-C0001"), "{credit_issued}");
 
     let credit_xml = std::fs::read_to_string(output_dir.join("2026-C0001.xml")).expect("credit note UBL file");
@@ -720,7 +720,7 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["verify"];
     args.extend(common);
-    let verified = bonk_ok(&args);
+    let verified = kushim_ok(&args);
     assert!(verified.contains("audit:    4 events verified"), "{verified}");
     assert!(verified.contains("hashes verified"), "{verified}");
     // Two documents, each with a UBL, a PDF, and the hybrid: six artefacts.
@@ -733,13 +733,13 @@ fn full_slice_through_the_cli() {
     let invoice_path = invoice_file.to_str().expect("utf-8");
     let mut args = vec!["import", invoice_path];
     args.extend(common);
-    let imported = bonk_ok(&args);
+    let imported = kushim_ok(&args);
     assert!(imported.contains("imported: 2026-0001"), "{imported}");
     assert!(imported.contains("supplier: unmatched"), "{imported}");
 
     let mut args = vec!["import", invoice_path];
     args.extend(common);
-    let again = bonk_ok(&args);
+    let again = kushim_ok(&args);
     assert!(again.contains("duplicate: 2026-0001"), "{again}");
 
     // The same number now names two documents, so evidence export refuses to
@@ -747,51 +747,51 @@ fn full_slice_through_the_cli() {
     let ambiguous_dir = dir.path().join("evidence-ambiguous");
     let mut args = vec!["evidence", "2026-0001", "--out", ambiguous_dir.to_str().expect("utf-8")];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("matches 2 documents"), "{stderr}");
 
     let mut args = vec!["received"];
     args.extend(common);
-    let listed = bonk_ok(&args);
+    let listed = kushim_ok(&args);
     assert!(listed.contains("2026-0001"), "{listed}");
     assert!(listed.contains("received"), "{listed}");
     assert!(listed.contains("supplier not matched"), "{listed}");
 
     let mut args = vec!["match", "2026-0001", "Customer BV"];
     args.extend(common);
-    let matched = bonk_ok(&args);
+    let matched = kushim_ok(&args);
     assert!(matched.contains("matched: 2026-0001 -> Customer BV"), "{matched}");
 
     let mut args = vec!["received"];
     args.extend(common);
-    let listed = bonk_ok(&args);
+    let listed = kushim_ok(&args);
     assert!(listed.contains("Customer BV"), "{listed}");
     assert!(!listed.contains("supplier not matched"), "{listed}");
 
     // Search reaches both directions and follows the supplier decision.
     let mut args = vec!["search", "customer"];
     args.extend(common);
-    let found = bonk_ok(&args);
+    let found = kushim_ok(&args);
     assert!(found.contains("2026-0001"), "{found}");
     assert!(found.contains("inbound"), "{found}");
     assert!(found.contains("outbound"), "{found}");
 
     let mut args = vec!["search", "customer", "--direction", "inbound", "--status", "received"];
     args.extend(common);
-    let found = bonk_ok(&args);
+    let found = kushim_ok(&args);
     assert!(found.contains("inbound"), "{found}");
     assert!(!found.contains("outbound"), "{found}");
 
     let mut args = vec!["search", "nothing-like-this"];
     args.extend(common);
-    assert!(bonk_ok(&args).contains("no documents match"));
+    assert!(kushim_ok(&args).contains("no documents match"));
 
     // Export is the same rows in a shape someone else can read.
     let mut args = vec!["export"];
     args.extend(common);
-    let csv = bonk_ok(&args);
+    let csv = kushim_ok(&args);
     assert!(
         csv.starts_with("number,direction,party,issue_date,currency,gross,status"),
         "{csv}"
@@ -807,7 +807,7 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["export", "--format", "json", "--direction", "inbound"];
     args.extend(common);
-    let json = bonk_ok(&args);
+    let json = kushim_ok(&args);
     assert!(json.contains("\"direction\": \"inbound\""), "{json}");
     assert!(!json.contains("outbound"), "{json}");
     assert!(json.contains("\"gross\": \"121.00\""), "amounts are strings: {json}");
@@ -815,7 +815,7 @@ fn full_slice_through_the_cli() {
     let exported = dir.path().join("export.csv");
     let mut args = vec!["export", "--out", exported.to_str().expect("utf-8")];
     args.extend(common);
-    let said = bonk_ok(&args);
+    let said = kushim_ok(&args);
     assert!(said.contains("exported: 3 documents"), "{said}");
     assert!(
         std::fs::read_to_string(&exported)
@@ -825,25 +825,25 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["approve", "2026-0001"];
     args.extend(common);
-    let approved = bonk_ok(&args);
+    let approved = kushim_ok(&args);
     assert!(approved.contains("approved: 2026-0001"), "{approved}");
 
     let mut args = vec!["received", "--status", "paid"];
     args.extend(common);
-    assert!(bonk_ok(&args).contains("no received documents"));
+    assert!(kushim_ok(&args).contains("no received documents"));
 
     let mut args = vec!["mark-paid", "2026-0001"];
     args.extend(common);
-    let paid = bonk_ok(&args);
+    let paid = kushim_ok(&args);
     assert!(paid.contains("paid: 2026-0001"), "{paid}");
 
     let mut args = vec!["received"];
     args.extend(common);
-    assert!(bonk_ok(&args).contains("paid"), "the register shows the new status");
+    assert!(kushim_ok(&args).contains("paid"), "the register shows the new status");
 
     let mut args = vec!["approve", "2026-0001"];
     args.extend(common);
-    let refused = bonk().args(&args).output().expect("binary runs");
+    let refused = kushim().args(&args).output().expect("binary runs");
     assert!(!refused.status.success(), "statuses do not move backwards");
     assert!(
         String::from_utf8_lossy(&refused.stderr).contains("already paid"),
@@ -853,7 +853,7 @@ fn full_slice_through_the_cli() {
 
     let mut args = vec!["verify"];
     args.extend(common);
-    let verified = bonk_ok(&args);
+    let verified = kushim_ok(&args);
     assert!(verified.contains("audit:    8 events verified"), "{verified}");
     assert!(verified.contains("head:"), "{verified}");
     assert!(verified.contains("payloads verified"), "{verified}");
@@ -866,7 +866,7 @@ fn full_slice_through_the_cli() {
     let backups = dir.path().join("backups");
     let mut args = vec!["backup", "--to", backups.to_str().expect("utf-8")];
     args.extend(common);
-    let said = bonk_ok(&args);
+    let said = kushim_ok(&args);
     assert!(said.contains("verified"), "{said}");
 
     let backup_file = std::fs::read_dir(&backups)
@@ -877,7 +877,7 @@ fn full_slice_through_the_cli() {
         .path();
     let mut args = vec!["verify-backup", backup_file.to_str().expect("utf-8")];
     args.extend(common);
-    let said = bonk_ok(&args);
+    let said = kushim_ok(&args);
     assert!(said.contains("backup verified"), "{said}");
     assert!(said.contains("events verified"), "{said}");
     assert!(said.contains("head:"), "{said}");
@@ -886,7 +886,7 @@ fn full_slice_through_the_cli() {
 #[test]
 fn conformance_findings_stop_issue_creation() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
     let output_dir = dir.path().join("out");
     let db = database.to_str().expect("utf-8");
@@ -896,7 +896,7 @@ fn conformance_findings_stop_issue_creation() {
 
     let mut args = vec!["init"];
     args.extend(common);
-    bonk_ok(&args);
+    kushim_ok(&args);
 
     let mut args = vec![
         "seller-add",
@@ -916,7 +916,7 @@ fn conformance_findings_stop_issue_creation() {
         "12345678",
     ];
     args.extend(common);
-    let seller = field(&bonk_ok(&args), "seller:");
+    let seller = field(&kushim_ok(&args), "seller:");
 
     let mut args = vec![
         "customer-add",
@@ -932,7 +932,7 @@ fn conformance_findings_stop_issue_creation() {
         "0106:87654321",
     ];
     args.extend(common);
-    let customer = field(&bonk_ok(&args), "customer:");
+    let customer = field(&kushim_ok(&args), "customer:");
 
     let mut args = vec![
         "draft-new",
@@ -950,11 +950,11 @@ fn conformance_findings_stop_issue_creation() {
         "Export consulting|1|100.00|0|G",
     ];
     args.extend(common);
-    let draft = field(&bonk_ok(&args), "draft:");
+    let draft = field(&kushim_ok(&args), "draft:");
 
     let mut args = vec!["issue", &draft, "--out", out];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("BR-G-10"), "{stderr}");
@@ -977,18 +977,18 @@ fn conformance_findings_stop_issue_creation() {
         "Consulting|2|50.00|21",
     ];
     args.extend(common);
-    let valid_draft = field(&bonk_ok(&args), "draft:");
+    let valid_draft = field(&kushim_ok(&args), "draft:");
 
     let mut args = vec!["issue", &valid_draft, "--out", out];
     args.extend(common);
-    let issued = bonk_ok(&args);
+    let issued = kushim_ok(&args);
     assert!(issued.contains("issued: 2026-0001"), "{issued}");
 }
 
 #[test]
 fn blocking_findings_stop_issue_creation() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
     let db = database.to_str().expect("utf-8");
     let key = keystore.to_str().expect("utf-8");
@@ -996,15 +996,15 @@ fn blocking_findings_stop_issue_creation() {
 
     let mut args = vec!["init"];
     args.extend(common);
-    bonk_ok(&args);
+    kushim_ok(&args);
 
     let mut args = vec!["seller-add", "--name", "Seller BV", "--city", "Amsterdam"];
     args.extend(common);
-    let seller = field(&bonk_ok(&args), "seller:");
+    let seller = field(&kushim_ok(&args), "seller:");
 
     let mut args = vec!["customer-add", "--name", "Customer BV", "--city", "Rotterdam"];
     args.extend(common);
-    let customer = field(&bonk_ok(&args), "customer:");
+    let customer = field(&kushim_ok(&args), "customer:");
 
     let mut args = vec![
         "draft-new",
@@ -1018,7 +1018,7 @@ fn blocking_findings_stop_issue_creation() {
         "Bad|0|10.00|21",
     ];
     args.extend(common);
-    let output = bonk().args(&args).output().expect("binary runs");
+    let output = kushim().args(&args).output().expect("binary runs");
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("blocking"), "{stderr}");
@@ -1028,10 +1028,10 @@ fn blocking_findings_stop_issue_creation() {
 #[test]
 fn an_unknown_document_language_is_refused() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "issue",
             "00000000-0000-0000-0000-000000000000",
@@ -1060,7 +1060,7 @@ fn an_anchor_file_proves_the_chain_is_the_original() {
     let new = "a much better passphrase";
 
     // Give the chain something to hold: a passphrase change is an audited event.
-    bonk_ok(&[
+    kushim_ok(&[
         "passphrase-change",
         "--db",
         &database,
@@ -1085,19 +1085,19 @@ fn an_anchor_file_proves_the_chain_is_the_original() {
 
     let mut args = vec!["anchor", path];
     args.extend(common);
-    let written = bonk_ok(&args);
+    let written = kushim_ok(&args);
     assert!(written.contains("appended:    yes"), "{written}");
 
     // Running it again records nothing new.
     let mut args = vec!["anchor", path];
     args.extend(common);
-    let again = bonk_ok(&args);
+    let again = kushim_ok(&args);
     assert!(again.contains("appended:    no"), "{again}");
 
     // Verifying with the anchor checks the chain and the outside record together.
     let mut args = vec!["verify", "--anchor", path];
     args.extend(common);
-    let verified = bonk_ok(&args);
+    let verified = kushim_ok(&args);
     assert!(verified.contains("1 checkpoint(s) still in the chain"), "{verified}");
 }
 
@@ -1107,7 +1107,7 @@ fn anchoring_an_archive_with_no_history_says_so() {
     let (database, keystore) = run_init(&dir);
     let file = dir.path().join("heads.txt");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "anchor",
             file.to_str().expect("utf-8"),
@@ -1132,7 +1132,7 @@ fn opening_with_device_when_nothing_is_remembered_says_so() {
     let dir = TempDir::new().expect("temp dir");
     let (database, keystore) = run_init(&dir);
 
-    let output = bonk()
+    let output = kushim()
         .args(["verify", "--device", "--db", &database, "--keystore", &keystore])
         .output()
         .expect("binary runs");
@@ -1150,7 +1150,7 @@ fn opening_with_device_when_nothing_is_remembered_says_so() {
 #[test]
 fn a_watched_folder_imports_a_dropped_invoice_once() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
     let out_dir = dir.path().join("out");
     let db = database.to_str().expect("utf-8");
@@ -1159,7 +1159,7 @@ fn a_watched_folder_imports_a_dropped_invoice_once() {
 
     let mut args = vec!["init"];
     args.extend(common);
-    bonk_ok(&args);
+    kushim_ok(&args);
 
     let mut args = vec![
         "seller-add",
@@ -1179,7 +1179,7 @@ fn a_watched_folder_imports_a_dropped_invoice_once() {
         "12345678",
     ];
     args.extend(common);
-    let seller = field(&bonk_ok(&args), "seller:");
+    let seller = field(&kushim_ok(&args), "seller:");
 
     let mut args = vec![
         "customer-add",
@@ -1195,7 +1195,7 @@ fn a_watched_folder_imports_a_dropped_invoice_once() {
         "0106:87654321",
     ];
     args.extend(common);
-    let customer = field(&bonk_ok(&args), "customer:");
+    let customer = field(&kushim_ok(&args), "customer:");
 
     let mut args = vec![
         "draft-new",
@@ -1213,11 +1213,11 @@ fn a_watched_folder_imports_a_dropped_invoice_once() {
         "Consulting|1|100.00|21",
     ];
     args.extend(common);
-    let draft = field(&bonk_ok(&args), "draft:");
+    let draft = field(&kushim_ok(&args), "draft:");
 
     let mut args = vec!["issue", &draft, "--out", out_dir.to_str().expect("utf-8")];
     args.extend(common);
-    bonk_ok(&args);
+    kushim_ok(&args);
 
     // Something drops that invoice back into the watched folder.
     let drop_dir = dir.path().join("drop");
@@ -1226,24 +1226,24 @@ fn a_watched_folder_imports_a_dropped_invoice_once() {
 
     let mut args = vec!["watch", drop_dir.to_str().expect("utf-8"), "--once", "--quiet-for", "0"];
     args.extend(common);
-    let first = bonk_ok(&args);
+    let first = kushim_ok(&args);
     assert!(first.contains("imported:"), "{first}");
     assert!(first.contains("2026-0001"), "{first}");
 
     // The same bytes again are the same document, not a second one.
     let mut args = vec!["watch", drop_dir.to_str().expect("utf-8"), "--once", "--quiet-for", "0"];
     args.extend(common);
-    let second = bonk_ok(&args);
+    let second = kushim_ok(&args);
     assert!(second.contains("duplicate:"), "{second}");
 }
 
 #[test]
 fn a_weak_passphrase_is_reported_but_not_refused() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "init",
             "--db",
@@ -1269,10 +1269,10 @@ fn a_weak_passphrase_is_reported_but_not_refused() {
 #[test]
 fn a_strong_passphrase_gets_no_warning() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
 
-    let output = bonk()
+    let output = kushim()
         .args([
             "init",
             "--db",
@@ -1295,7 +1295,7 @@ fn a_strong_passphrase_gets_no_warning() {
 #[test]
 fn demo_seed_fills_an_archive_and_refuses_to_clobber_one() {
     let dir = TempDir::new().expect("temp dir");
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
     let database = database.to_str().expect("utf-8");
     let keystore = keystore.to_str().expect("utf-8");
@@ -1318,12 +1318,12 @@ fn demo_seed_fills_an_archive_and_refuses_to_clobber_one() {
         "5",
     ];
 
-    let output = bonk_ok(&seed);
+    let output = kushim_ok(&seed);
     assert_eq!(field(&output, "customers:"), "3");
     assert_eq!(field(&output, "drafts:"), "3");
     assert_eq!(field(&output, "views:"), "4 saved searches");
 
-    let refused = bonk().args(seed).output().expect("binary runs");
+    let refused = kushim().args(seed).output().expect("binary runs");
     assert!(!refused.status.success(), "a second seed must not overwrite silently");
     assert!(
         String::from_utf8_lossy(&refused.stderr).contains("--force"),
@@ -1332,9 +1332,9 @@ fn demo_seed_fills_an_archive_and_refuses_to_clobber_one() {
 
     let mut forced = seed.to_vec();
     forced.push("--force");
-    bonk_ok(&forced);
+    kushim_ok(&forced);
 
-    let verified = bonk_ok(&[
+    let verified = kushim_ok(&[
         "--passphrase",
         passphrase,
         "--db",
@@ -1353,7 +1353,7 @@ fn a_recovery_kit_restores_a_database_copy() {
 
     let kit = TempDir::new().expect("kit dir");
     let kit_dir = kit.path().to_str().expect("temp path is UTF-8");
-    let said = bonk_ok(&["recovery-kit", kit_dir, "--db", &database, "--keystore", &keystore]);
+    let said = kushim_ok(&["recovery-kit", kit_dir, "--db", &database, "--keystore", &keystore]);
     assert!(said.contains("keystore.bin"), "{said}");
 
     let key = kit.path().join("keystore.bin");
@@ -1362,7 +1362,7 @@ fn a_recovery_kit_restores_a_database_copy() {
     assert!(instructions.contains("another medium"), "{instructions}");
 
     // A second run must not replace a key that is already there.
-    let again = bonk()
+    let again = kushim()
         .args(["recovery-kit", kit_dir, "--db", &database, "--keystore", &keystore])
         .output()
         .expect("binary runs");
@@ -1370,9 +1370,9 @@ fn a_recovery_kit_restores_a_database_copy() {
     assert!(String::from_utf8_lossy(&again.stderr).contains("already exists"));
 
     // The point of the kit: a copy of the archive plus this key opens.
-    let restored = kit.path().join("bonk.db");
+    let restored = kit.path().join("kushim.db");
     std::fs::copy(&database, &restored).expect("archive copy");
-    let verified = bonk_ok(&[
+    let verified = kushim_ok(&[
         "verify",
         "--db",
         restored.to_str().expect("temp path is UTF-8"),
@@ -1389,7 +1389,7 @@ fn a_recovery_kit_refuses_to_sit_inside_the_archive() {
     let dir = TempDir::new().expect("temp dir");
     let (database, keystore) = run_init(&dir);
 
-    let refused = bonk()
+    let refused = kushim()
         .args([
             "recovery-kit",
             dir.path().to_str().expect("temp path is UTF-8"),

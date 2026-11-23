@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "bonk-mobile"
+rootProject.name = "kushim-mobile"
 include(":shared")
 include(":androidApp")

@@ -24,7 +24,7 @@ use crate::error::StoreError;
 use crate::integrity::{self, IntegrityReport};
 
 /// Marker in `summary.json`.
-pub const FORMAT: &str = "bonk-support";
+pub const FORMAT: &str = "kushim-support";
 /// Bundle layout version.
 pub const VERSION: u32 = 1;
 
@@ -195,7 +195,7 @@ pub fn describe(conn: &Connection, request: &SupportRequest<'_>) -> Result<Suppo
 impl SupportSummary {
     pub fn render_text(&self) -> String {
         let mut out = String::new();
-        out.push_str("bonk support bundle\n");
+        out.push_str("kushim support bundle\n");
         out.push_str(&format!("generated:  {}\n", self.generated_at));
         out.push_str(&format!("version:    {} ({})\n", self.app_version, self.platform));
         out.push_str(&format!("schema:     {}\n", self.schema_version));

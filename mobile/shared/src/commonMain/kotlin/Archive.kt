@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 /** What the unlocked screen shows. */
 data class ArchiveSummary(

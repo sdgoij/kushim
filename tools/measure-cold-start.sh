@@ -10,7 +10,7 @@
 set -eu
 
 serial=${1:--}
-package=com.github.sdgoij.bonk
+package=com.github.sdgoij.kushim
 
 # CI hands over the APK it built; a local run uses the Gradle output. The APKs are
 # split per ABI, so take whichever this host built.
@@ -24,7 +24,7 @@ default_apk() {
     printf '%s' "$1"
 }
 
-apk=${BONK_APK:-$(default_apk \
+apk=${KUSHIM_APK:-$(default_apk \
     mobile/androidApp/build/outputs/apk/release/androidApp-arm64-v8a-release.apk \
     mobile/androidApp/build/outputs/apk/release/androidApp-x86_64-release.apk \
     mobile/androidApp/build/outputs/apk/release/androidApp-release.apk)}

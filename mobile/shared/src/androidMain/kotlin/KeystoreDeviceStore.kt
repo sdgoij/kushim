@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.os.Build
 import android.os.Handler
@@ -23,8 +23,8 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import uniffi.bonkc.AppException
-import uniffi.bonkc.DeviceSecretStore
+import uniffi.kushim.AppException
+import uniffi.kushim.DeviceSecretStore
 
 /**
  * S3: an Android Keystore implementation of the UniFFI `DeviceSecretStore`
@@ -240,7 +240,7 @@ class KeystoreDeviceStore(private val activity: FragmentActivity) : DeviceSecret
                 },
             )
             val info = BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Unlock Bonk")
+                .setTitle("Unlock Kushim")
                 .setSubtitle("Use your fingerprint or face")
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .setNegativeButtonText("Use passphrase")
@@ -260,7 +260,7 @@ class KeystoreDeviceStore(private val activity: FragmentActivity) : DeviceSecret
     }
 
     private companion object {
-        const val KEY_ALIAS = "bonk.device.biometric"
+        const val KEY_ALIAS = "kushim.device.biometric"
         const val SECRET_LENGTH = 32
         const val IV_LENGTH = 12
         const val TAG_BITS = 128

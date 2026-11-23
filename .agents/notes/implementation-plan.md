@@ -1,6 +1,6 @@
 # Implementation Plan
 
-**Project:** Bonk (working name; final name TBD) — local-first e-invoicing client
+**Project:** Kushim (ADR-026) — local-first e-invoicing client
 **Companion to:** `.agents/notes/technical-design.md` (v1.0),
 `.agents/notes/accounting-design.md` (v1.1)
 **Date:** 2026-10-27
@@ -184,10 +184,10 @@ test cannot pass vacuously. This covers process death only: power loss, a torn
 sector below SQLite, and a disk that reorders writes are out of reach here and
 remain a hardware/OS assumption.
 
-**CI, 2026-11-03.** Run [#15](https://github.com/sdgoij/bonk/actions/runs/41646658591)
+**CI, 2026-11-03.** Run [#15](https://github.com/sdgoij/kushim/actions/runs/41646658591)
 passed in 7m 0s: the test matrix on ubuntu, macos, and windows, the unencrypted
 fallback build, and the licence/advisory check. Run
-[#16](https://github.com/sdgoij/bonk/actions/runs/41650629025) then passed on the
+[#16](https://github.com/sdgoij/kushim/actions/runs/41650629025) then passed on the
 crash-test commit, so the write-ahead-log assumption behind that test holds on
 macOS and Linux as well as Windows. M0's exit criteria are met.
 
@@ -209,7 +209,7 @@ Work packages:
 | M1.5 | Issue transaction: number allocation, snapshot, immutability triggers, audit chain | 4 d |
 | M1.6 | UBL 2.1 writer for the supported subset; golden tests | 5 d |
 | M1.7 | Visual PDF via Typst (no PDF/A yet); template "minimal" | 4 d |
-| M1.8 | Artifact storage + hash manifest + `bonk verify` CLI | 2 d |
+| M1.8 | Artifact storage + hash manifest + `kushim verify` CLI | 2 d |
 
 Deliberately excluded: credit notes, reverse charge, multiple VAT rates, foreign
 customers, multiple currencies, discounts. They come with M2 because they are
@@ -222,7 +222,7 @@ Exit criteria:
 - Re-rendering an issued invoice is byte-identical (hash equal).
 - Kill the app mid-render; on restart the invoice exists, and artefacts
   regenerate correctly.
-- `bonk verify <invoice-id>` recomputes and confirms every hash offline.
+- `kushim verify <invoice-id>` recomputes and confirms every hash offline.
 - Editor stays under 16 ms frame time on a 5 000-line database.
 
 **Status, 2026-10-27.** Implementation of the slice is complete end to end.
@@ -238,7 +238,7 @@ deterministic for the same input. 132 tests workspace-wide.
 
 **Typst is linked in (2026-10-29).** The renderer used to shell out to the `typst` CLI through a temporary directory, which made issuing an invoice depend on a tool installed on the machine, failed on CI runners without it, and made the artefact bytes a property of the host. `render::TypstRenderer` now compiles the same template in-process through `embedded-typst`: the world is the template plus one in-memory `data.json`, the fonts are Typst's bundled set rather than the system's, and the creation time comes from the issue date as before. The preview is a PNG rasterised from that same compiled document with `typst-render`, so it cannot disagree with the PDF. Artefacts record `typst-0.15`; the cost is a much heavier build and a larger binary.
 
-**Typst is replaced by `krilla` and our own layout (2026-10-30).** Linking Typst in cost 37 MB of binary for a typesetter an invoice barely uses; the spike in `spikes/pdf-rendering.md` measured the alternative. `render` now owns the page: `layout` measures the bundled DejaVu Serif with `harfrust`, wraps and paginates, and emits `Document { pages: [Page { ops }] }` in points with the y axis pointing down; `pdf` shapes the same lines with `harfrust` and places the glyphs through `krilla`, the writer Typst itself uses. `krilla`'s `simple-text` feature is off, because it would pull in the unmaintained `rustybuzz` (RUSTSEC-2026-0206); shaping both the measurement and the output here keeps that crate out of the graph, and one shaper means the wrapping and the placed glyphs agree. The window preview draws the *same* model with egui and the same font files, which replaces the PNG rasteriser and drops `typst-render`, `resvg`, and `tiny-skia` from the graph. Templates became declarative JSON (`render::template`): page, type, rules, section order, table columns as `pt`/`fr`, label overrides, and a footer with a fixed `{{placeholder}}` table — data, not code, so a template cannot compute or read a file. Unknown keys are refused and a bad field comes back with its path. The release binary is 32 MB and the dependency graph lost 161 packages. Artefacts now record `bonk-layout-1`.
+**Typst is replaced by `krilla` and our own layout (2026-10-30).** Linking Typst in cost 37 MB of binary for a typesetter an invoice barely uses; the spike in `spikes/pdf-rendering.md` measured the alternative. `render` now owns the page: `layout` measures the bundled DejaVu Serif with `harfrust`, wraps and paginates, and emits `Document { pages: [Page { ops }] }` in points with the y axis pointing down; `pdf` shapes the same lines with `harfrust` and places the glyphs through `krilla`, the writer Typst itself uses. `krilla`'s `simple-text` feature is off, because it would pull in the unmaintained `rustybuzz` (RUSTSEC-2026-0206); shaping both the measurement and the output here keeps that crate out of the graph, and one shaper means the wrapping and the placed glyphs agree. The window preview draws the *same* model with egui and the same font files, which replaces the PNG rasteriser and drops `typst-render`, `resvg`, and `tiny-skia` from the graph. Templates became declarative JSON (`render::template`): page, type, rules, section order, table columns as `pt`/`fr`, label overrides, and a footer with a fixed `{{placeholder}}` table — data, not code, so a template cannot compute or read a file. Unknown keys are refused and a bad field comes back with its path. The release binary is 32 MB and the dependency graph lost 161 packages. Artefacts now record `kushim-layout-1`.
 
 External validation: `tools/validate-m1.sh` generates 20 varied invoices and
 runs Mustangproject 2.17.0 against every UBL file. **20/20 pass EN 16931 and
@@ -291,7 +291,7 @@ Number allocation, issue-time conformance, finding paths, and click-to-focus are
 in place. M2.5 is complete: non-blocking warnings can be suppressed with a
 mandatory reason, stored in `validation_suppression`, and recorded on the audit
 chain as `finding_suppressed`; blocking findings are never suppressible. Schema
-version is now 3. Migrations carry optional down SQL: `bonk migrate-down --to 2
+version is now 3. Migrations carry optional down SQL: `kushim migrate-down --to 2
 --yes` preflights the chain and rolls back 0003; 0001/0002 are deliberately
 irreversible because they create legal evidence.
 
@@ -318,7 +318,7 @@ allocating a number, so a stale reference cannot be issued. Credit notes have
 their own counter and a `-C` number prefix (`2026-C0001`). T1-022 (a credit note
 needs a preceding invoice), T1-023 (no due date on a credit note), and T1-024 (an
 invoice must not carry a preceding reference) are blocking.
-The CLI gained `bonk credit-note <number>`, and the desktop Issued screen has a
+The CLI gained `kushim credit-note <number>`, and the desktop Issued screen has a
 Credit note action that copies the document into the editor. `validate-m1.sh`
 now validates 20 invoices and one credit note against Mustang: **21/21 valid**.
 
@@ -458,7 +458,7 @@ documents, 0003 suppression, schema version 3.
 
 Not started: CII, Factur-X extraction, and the register's user interface beyond the CLI.
 
-The inbound path is wired end to end. `bonk import <files…>` reads a UBL
+The inbound path is wired end to end. `kushim import <files…>` reads a UBL
 document, matches the issuer against the party table (identical VAT identifier,
 then identical Peppol endpoint, then legal name plus city), and records it as a
 `document` row with `direction = 'inbound'`: the bytes in `blob`, the parsed
@@ -517,8 +517,8 @@ left behind: 8 613 623, 19 828 456, and 3 751 385 executions, again clean. The
 working corpus is ignored (a run writes thousands of inputs); the hand-picked
 starting points live in `fuzz/seeds/<target>/`, and `just fuzz` copies them in.
 
-M3.5 is in as well. `bonk received` lists inbound documents with supplier, dates,
-amount, and status; `bonk approve` and `bonk mark-paid` move a document forward.
+M3.5 is in as well. `kushim received` lists inbound documents with supplier, dates,
+amount, and status; `kushim approve` and `kushim mark-paid` move a document forward.
 Status is derived from append-only `document_event` rows, never written to the
 document, so the document stays immutable and the reason for its status stays
 readable. Transitions only move forward and a repeat is refused with a clear
@@ -526,7 +526,7 @@ message; `document_event` has triggers blocking updates and deletes. Outbound
 documents are not part of the register, and asking to settle one is an error
 rather than a silent no-op.
 
-M3.4 closes with the manual override. `bonk match <document> <customer>` resolves
+M3.4 closes with the manual override. `kushim match <document> <customer>` resolves
 the document in the register and the party by identifier or display name, then
 writes one `supplier_match` row and one `supplier_matched` audit event. The
 document keeps the import-time `counterparty_id` and the issuer snapshot; the
@@ -545,7 +545,7 @@ M3.6 is in, with one deliberate departure from the plan. `import::watch` polls t
 folder instead of subscribing with `notify`, because drop folders are often
 network shares, where change notifications either do not work or lie, and the
 question that matters is not "did something happen" but "has the writer finished"
-— which is a quiet period, not an event. `bonk watch <dir>` polls every `--every`
+— which is a quiet period, not an event. `kushim watch <dir>` polls every `--every`
 seconds and reads a file once it has been untouched for `--quiet-for` seconds;
 files already in the folder when the watcher starts are left alone, so starting it
 cannot import a back catalogue, and `--once` is the deliberate exception for a
@@ -566,7 +566,7 @@ document open rather than leaving it behind the current filters. An opened
 inbound document shows its supplier with a picker over the party table and
 **Match supplier**, plus **Approve** while it is received and **Mark paid** once
 it is approved — the same `set_supplier_match` and `advance_status` calls, with
-the same audit events, as `bonk match`, `approve`, and `mark-paid`.
+the same audit events, as `kushim match`, `approve`, and `mark-paid`.
 
 **The window can watch a folder too (2026-11-03).** Settings has a **Watching a
 folder** card: pick a drop folder with the platform's folder picker, then
@@ -641,7 +641,7 @@ failed to render. That splice is the one place this feature is tied to krilla's
 output shape, so an upgrade has to re-run the anchor tests.
 
 Issuing now files three artefacts — `ubl`, `pdf`, `facturx` — and each carries
-the profile that says what it is. `verify` hashes all three, `bonk issue` writes
+the profile that says what it is. `verify` hashes all three, `kushim issue` writes
 all three files and prints their paths, and the window gained **Save Factur-X…**
 beside the other two, which writes the archived bytes rather than re-rendering.
 A hybrid is only written when the document passed the same profile gate the UBL
@@ -699,7 +699,7 @@ turns its warnings into findings the front ends already know how to show. Two ch
 earned their place: a character the bundled font has no glyph for, and an amount
 wider than the sheet. The composer shows them under the conformance findings,
 read-only — a preflight warning is not a draft finding, so there is nothing to
-suppress and nothing to accept — and `bonk issue` prints them on stderr.
+suppress and nothing to accept — and `kushim issue` prints them on stderr.
 
 The glyph check is not cosmetic. Trying it by hand showed that PDF/A refuses a
 `.notdef` outright: krilla's archival validator rejects the document, so a name with
@@ -765,7 +765,7 @@ with a `CiiError::MissingField` that names the level and the term. The UBL
 artefact still passes the Peppol gate whichever level the hybrid claims, because
 it is Peppol output regardless.
 
-`bonk issue --profile minimum|basic-wl|basic|en16931|extended` chooses the level;
+`kushim issue --profile minimum|basic-wl|basic|en16931|extended` chooses the level;
 the artefact row records `factur-x:<level>`, so the archive says what was claimed
 without anyone opening the bytes. The window has the same choice in the issue
 form, defaulting to EN 16931; it is a delivery choice rather than draft content,
@@ -801,7 +801,7 @@ in the message after an import.
 
 FTS5 with the design's ranking, saved filters, CSV/JSON export, keyboard
 shortcuts, empty states, Dutch and English UI, document-language selection,
-`bonk support-bundle`. Exit: 20 000-invoice database, typed queries under 30 ms
+`kushim support-bundle`. Exit: 20 000-invoice database, typed queries under 30 ms
 p95, no layout breakage at 125 %/150 % DPI scaling.
 
 **Status, 2026-10-28.** Search is in. `invoice_fts` lives in migration 0002 and
@@ -810,10 +810,10 @@ indexes the number, the party name, the buyer and order references, and the
 note; a supplier decision rewrites the party column. `store::search` takes a
 query plus optional direction, date window, and status filters, quotes and
 prefix-matches each typed word so a search box can never produce an FTS5 syntax
-error, and ranks with `bm25` weighting the number highest. `bonk search` exposes
+error, and ranks with `bm25` weighting the number highest. `kushim search` exposes
 it.
 
-Export is the same rows in a shape someone else can read: `bonk export` writes
+Export is the same rows in a shape someone else can read: `kushim export` writes
 CSV or JSON over the same filters (an empty query means everything), with the
 amount as a decimal string in both, because a JSON number is a float to most
 parsers and money must not round-trip through a float. An empty export is a
@@ -856,7 +856,7 @@ by. Adding a second table changes one module and no call sites. The strength
 estimate now returns a `Reason` code rather than a sentence, which is what lets the
 wording live in the text table at all, and status and side words come from the
 table rather than `Display`, so a translated screen is not half translated.
-`BonkApp` and `Workspace` each hold the language, chosen once; the seller's locale
+`KushimApp` and `Workspace` each hold the language, chosen once; the seller's locale
 is the obvious source for a second table.
 
 **The window is a four-tab shell (2026-10-29).** A narrow icon rail on the left
@@ -904,7 +904,7 @@ M5 is complete: nothing is left in the interface, and the search criterion is me
 at 20 000 documents — the measurement and the four things it took are below.
 
 **The 20 000-document measurement finds M5's criterion unmet (2026-11-02).**
-`bonk bench-search` opens the archive once and times `store::search` over that many
+`kushim bench-search` opens the archive once and times `store::search` over that many
 samples, so the Argon2id unlock is outside the loop. On a 20 000-document demo
 archive in a release build: a word query returning the 1 000-row cap takes
 **p95 63 ms** (median 62.8 ms), and the browse view over 20 000 documents takes
@@ -931,7 +931,7 @@ an index the join never walks. The fix is to read `document` directly when there
 is nothing to match — filters, order, and page all on the indexed table — and to
 leave `invoice_fts` to the queries that actually have words.
 
-**M5's search criterion is met (2026-11-03).** `bonk bench-search` times a
+**M5's search criterion is met (2026-11-03).** `kushim bench-search` times a
 50-row page over the 20 000-document demo archive: browse is **p95 1.50 ms**
 (median 1.34) and a word query is **p95 3.0–10.0 ms** depending on how much of the
 archive matches, against a criterion of 30 ms. Both shapes changed at once, and
@@ -997,9 +997,9 @@ row, so it cannot pass by looking at a frame that drew nothing.
 **Status, 2026-10-28.** M6.4's storage half is in. `store::backup` writes a
 `VACUUM INTO` copy, verifies it read-only (integrity plus the audit chain), and
 only then prunes older copies beyond the retention limit; a copy that fails
-verification is left in place and reported. `bonk backup` uses it (default
+verification is left in place and reported. `kushim backup` uses it (default
 directory `backups` beside the database, `--keep` for retention) and
-`bonk verify-backup` checks a copy without opening the live database. Tests cover
+`kushim verify-backup` checks a copy without opening the live database. Tests cover
 encryption, rotation, refusal before pruning, damage detection, and a restore on
 a fresh path.
 
@@ -1009,14 +1009,14 @@ window now runs it on a worker with its own connection, like the archive check:
 `store::backup::backup_with_progress` reports `Copying`, `VerifyingStructure`, and
 the chain walk link by link, the card shows a spinner for the two SQLite calls
 that cannot report progress and a bar for the chain, and the button is disabled
-until the job answers. `bonk backup` prints the same stages to stderr.
+until the job answers. `kushim backup` prints the same stages to stderr.
 
 **The key has a copy of its own (2026-11-03).** A database copy cannot be opened
 without the keystore: the archive is encrypted with a random data key, and the
 passphrase only unwraps that key from `keystore.bin`, so a recovery key is inert
 without the file it lives in. The backups deliberately carry no key — a stolen
 backup folder is then worth a 256-bit brute force rather than a passphrase guess —
-and `bonk recovery-kit <dir>`, or **Write a recovery kit…** on the window's Backup
+and `kushim recovery-kit <dir>`, or **Write a recovery kit…** on the window's Backup
 card, writes the other half: a byte copy of the keystore plus a `RECOVERY.txt`
 with the restore steps. Both go through `store::kit::write`, so the refusal to put
 a kit inside the archive directory cannot be forgotten by one of them. It needs no
@@ -1025,7 +1025,7 @@ after a passphrase or recovery-key change, because an old copy still unwraps the
 same data key but with the credential it was taken under.
 
 M6.3's chain-head display is in as well: `audit::head` returns the newest link,
-and both `bonk verify` and `bonk verify-backup` print it, so comparing two copies
+and both `kushim verify` and `kushim verify-backup` print it, so comparing two copies
 of an archive is a diff of sequence number, hash, and time rather than a guess.
 Event coverage is unchanged and already tested (issue, import, status changes,
 supplier decisions).
@@ -1033,7 +1033,7 @@ supplier decisions).
 M6.3 is in as well. `store::anchor` writes a checkpoint — timestamp, sequence
 number, hash — as one line in a plain-text file the user keeps apart from the
 archive, refuses to extend a file that no longer agrees, and treats a repeated
-head as nothing to record. `bonk verify --anchor <file>` checks every recorded
+head as nothing to record. `kushim verify --anchor <file>` checks every recorded
 head against the chain, which is the one check a complete rewrite cannot pass:
 the store test builds a second archive, swaps its (valid) chain in, confirms
 `verify_chain` still accepts it, and then confirms the anchor refuses. Without a
@@ -1052,12 +1052,12 @@ the boundary.
 M6.7's data half is in. `store::integrity::audit` re-hashes every blob, cross-
 checks each artefact's hash against its blob, confirms every import record still
 has its payload, runs `PRAGMA foreign_key_check`, and counts blobs nothing refers
-to. `bonk verify` reports all four; an orphan is wasted space, a mismatch or a
+to. `kushim verify` reports all four; an orphan is wasted space, a mismatch or a
 missing payload is corruption. `blob` now has the same write-once triggers as the
 other evidence tables, since every recorded hash points at those bytes. The panel
 that renders this arrived with M6.7's other half and is described below.
 
-M6.2's rewrap is in as well. `bonk passphrase-change` opens the keystore and the
+M6.2's rewrap is in as well. `kushim passphrase-change` opens the keystore and the
 database with the current passphrase, seals the same data key under the new one,
 unseals those bytes in memory and compares the key before the file is replaced,
 then appends a `passphrase_changed` event. A wrong current passphrase or a
@@ -1066,7 +1066,7 @@ missing database leaves the keystore untouched.
 M6.1's recovery key is in. Keystore format version 2 appends a second wrap of the
 same data key under a 160-bit secret, shown once as Crockford base32 in eight
 groups and never stored; the passphrase wrap keeps its version-1 layout and both
-versions still open. `bonk recovery-add` requires the passphrase before adding a
+versions still open. `kushim recovery-add` requires the passphrase before adding a
 route, replaces an existing key, verifies in memory that both routes unwrap the
 same key before writing, and records `recovery_key_added`. A passphrase change
 carries the recovery wrap over without holding the secret. `passphrase-reset`
@@ -1093,8 +1093,8 @@ M6.1's strength estimate and confirmation are in. `app::strength` scores a phras
 on length, character variety, and a short list of common phrases, collapses a
 repeated pattern to its period before counting, and returns a level, a floor on
 the search space in bits, and one sentence of advice; the unlock screen shows it
-under the field and the creation flow asks for the phrase twice. `bonk init` asks
-twice at the prompt as well, while `--passphrase` and `BONK_PASSPHRASE` are single
+under the field and the creation flow asks for the phrase twice. `kushim init` asks
+twice at the prompt as well, while `--passphrase` and `KUSHIM_PASSPHRASE` are single
 sources and are taken as they stand. A weak phrase is reported on stderr rather
 than refused: the estimate is a heuristic, and blocking an archive the user asked
 for would be worse than telling them the truth once.
@@ -1106,7 +1106,7 @@ database: listed files must match, nothing unlisted may appear, manifest paths
 must stay inside the bundle, the record must belong to the named document, and
 the chain must recompute to the recorded head with at least one event naming the
 document. Export verifies what it wrote before reporting success, and refuses a
-number that matches both directions. `bonk evidence` and `bonk evidence-verify`
+number that matches both directions. `kushim evidence` and `kushim evidence-verify`
 expose it. The chain travels whole, so bundles grow with the archive; the design
 note records that trade-off and what a bundle does and does not prove. Since M10,
 the bundle also carries the journal entries and prepared VAT returns that belong
@@ -1114,7 +1114,7 @@ to the document — see the M10 status note for how those are chosen and verifie
 
 M6.6's bundle is in. `store::support` collects counts, versions, sizes, the
 integrity audit, the chain head, and per-kind audit counts, writes `summary.json`
-and `summary.txt`, and `bonk support-bundle` prints exactly what it wrote. The
+and `summary.txt`, and `kushim support-bundle` prints exactly what it wrote. The
 redaction policy is structural: the bundle is assembled from typed facts, so there
 is no free text to filter, and paths are excluded because they carry the operating
 system user name. A canary test seeds an archive with a distinctive seller name,
@@ -1135,7 +1135,7 @@ the panel contents even though the header is collapsed.
 
 M6.2's idle lock is in. `app::idle` is a fire-once timer with the clock passed in,
 so its behaviour is tested without a window: it fires once at the limit, re-arms
-on activity, saturates a backwards clock, and clamps `BONK_IDLE_MINUTES` (default
+on activity, saturates a backwards clock, and clamps `KUSHIM_IDLE_MINUTES` (default
 15, allowed 1–1440). The app counts any egui event as activity and schedules a
 repaint every 30 seconds while unlocked, because a reactive UI with no scheduled
 frame would only notice the timeout on the next mouse move.
@@ -1300,7 +1300,7 @@ and the control-account check compares 1300 and 1400 against the open items behi
 them, which migration 0013 and `store::open_items` now provide: one item per posted
 document, written inside the posting's transaction, signed (a credit note is a
 negative receivable), with the balance derived rather than stored. Items are aged
-by due date in the usual five buckets, and `bonk ledger open-items` lists or ages
+by due date in the usual five buckets, and `kushim ledger open-items` lists or ages
 them. An archive whose documents were posted before 0013 has entries but no open
 items, so its control accounts cannot be reconciled until the subledger is rebuilt
 from the postings — a command that does not exist yet, and the reason the check
@@ -1310,7 +1310,7 @@ the period must be posted, the VAT posted for each document must equal the VAT o
 it (with the self-assessed side added for reverse-charged purchases), and the trial
 balance up to the period end must net to zero. A check that cannot run is not a
 blocker — refusing to file because a future feature is missing would leave the
-books unfileable — so `bonk ledger vat-return` prints `fileable: yes` next to the
+books unfileable — so `kushim ledger vat-return` prints `fileable: yes` next to the
 box it could not check. The CLI exposes the whole path: `ledger setup`, `post`, `chart`,
 `trial-balance`, `profit-and-loss`, `balance-sheet`, `reverse`, and `vat-return`
 with `--prepare`.
@@ -1361,14 +1361,14 @@ named, because a balance that is quietly rounded into agreement is worse than on
 that is visibly wrong. The VAT box labels are short forms rather than the form's
 official wording, which does not fit a column; the store's failure sentences are
 shown verbatim, so a Dutch window still carries English detail there until the
-findings grow stable codes. Setting up the chart is still `bonk ledger setup`: a
+findings grow stable codes. Setting up the chart is still `kushim ledger setup`: a
 GUI button that writes accounts would need its own audit story, which belongs with
 the A5 pilot rather than here.
 
 **Status, 2026-11-06 (the subledger can be repaired).** An archive posted before
 migration 0013 has entries and no open items, so its control accounts cannot be
 reconciled and re-posting cannot help: posting is idempotent per document, and the
-entry it finds is the one that lacks an item. `bonk ledger rebuild-open-items`
+entry it finds is the one that lacks an item. `kushim ledger rebuild-open-items`
 closes that gap. It asks the same function posting uses (`posting::open_item_for_document`)
 what each posted document creates, so the rebuilt item is what the posting would
 have written rather than a second opinion — gross, signed by document type, dated
@@ -1406,7 +1406,7 @@ re-derives the hash with the code, so a coded posting verifies offline.
 
 A wrong code on an already-posted purchase is corrected the way any mistake in the
 books is, and the machinery now exists: `store::post_manual_entry` and
-`bonk ledger post-manual` write a balanced memorial entry that a person composed,
+`kushim ledger post-manual` write a balanced memorial entry that a person composed,
 and its lines may carry a category, a rate, and a tax code. That last part is what
 makes the correction reach a box: boxes are read from the tags on lines, so a
 memorial line without a treatment cannot move anything into 4b. A memorial line on
@@ -1418,7 +1418,7 @@ needs. Reversing the entry and booking the corrected amounts under the right cod
 leaves 4a at zero, 4b holding the supply, 5b unchanged, and the period fileable;
 an integration test walks exactly that sequence.
 
-`store::reclassify`, behind `bonk ledger reclassify`, does the two-step in one
+`store::reclassify`, behind `kushim ledger reclassify`, does the two-step in one
 transaction: it reverses the entry and posts the same amounts with the code
 swapped, and writes one `entry_reclassified` event that ties the pair together. It
 touches only the lines whose category the code resolves, refuses a second
@@ -1437,7 +1437,7 @@ and the picker writes through the same `assign`/`clear` the CLI uses. A refusal 
 say, a sale — arrives as the window's error banner rather than a silent no-op.
 
 **Status, 2026-11-06 (MT940 joins CAMT).** `import::mt940` reads the flat `:NN:`
-statement format, and `bonk ledger bank import` picks the reader from the file's
+statement format, and `kushim ledger bank import` picks the reader from the file's
 contents rather than its extension (`sniff` gained a `Mt940` case that requires
 `:20:`, `:25:`, or `:60F:` at the start of a line, which is why a document that
 merely mentions one is not mistaken for a statement). The two readers now share
@@ -1603,7 +1603,7 @@ person with an author and a time, in the same shape as the tax code beside it.
 `store::expense::assign` refuses an account that is not an expense, one that holds a
 subledger, one that is archived, and `9999` itself (that is "undecided", and clearing
 the choice says it). The posting uses the choice instead of the default, so a
-classified purchase never touches `9999`; the CLI verb is `bonk ledger account
+classified purchase never touches `9999`; the CLI verb is `kushim ledger account
 <document> [<code>] [--clear]`, and the window puts a picker beside the tax-code one
 on an opened received document, disabled once the document is posted.
 
@@ -1640,11 +1640,11 @@ The shared validation moved to `expense::cost_account`, so choosing an account b
 the posting and moving one afterwards cannot disagree about what a cost account is.
 
 **Status, 2026-11-15 (a month can be closed, and opened again on the record).**
-`bonk ledger close --year Y --month M` prints the period, its window, whether it is
+`kushim ledger close --year Y --month M` prints the period, its window, whether it is
 open, and every blocker `close_blockers` finds; `--dry-run` stops there. The store
 was already the one place the refusal lived — `lock_period` returns the first
 blocker's sentence, so a dry run and the real close say the same words, and a test
-asserts they are equal. `bonk ledger reopen --year Y --month M --reason "…"` is
+asserts they are equal. `kushim ledger reopen --year Y --month M --reason "…"` is
 the other half: `reopen_period` refuses an empty reason and an open period, flips
 the status back, and appends a `reopened` event carrying the reason while the
 `locked` event stays, so the record shows that the month was closed and why it
@@ -1659,7 +1659,7 @@ blocker it can fix. A period exists only once something is posted in it, and a
 close of a month that was never touched says so rather than silently creating an
 empty one.
 
-**Status, 2026-11-15 (a year closes, and opens again).** `bonk ledger close-year`
+**Status, 2026-11-15 (a year closes, and opens again).** `kushim ledger close-year`
 posts the resultaatbestemming — every revenue and expense account zeroed, the
 difference to `0500 Eigen vermogen` — locks the twelve months and the adjustment
 period, and writes the `closed` period event that had been unused in the schema
@@ -1733,7 +1733,7 @@ added each item's amount to them, so a books holding a euro and a pound invoice
 failed the addition and the Ledger tab showed
 `corrupt record: currency mismatch: EUR vs GBP` instead of the subledger. Aging and
 totals are now kept per currency — the reporting currency first, the rest in code
-order — the window draws one aging matrix per currency, and `bonk ledger
+order — the window draws one aging matrix per currency, and `kushim ledger
 open-items` prints a block per currency and each item in its own.
 
 **Status, 2026-11-16 (foreign postings are converted; settlement remains).**
@@ -1751,7 +1751,7 @@ written before this still hashes exactly as it did, and a foreign entry's bundle
 still verifies offline. Reversals and reclassifications carry the original rate
 rather than restating it; a rate is refused after posting because the entry is
 append-only. The control-account check now sums carrying values. The CLI has
-`bonk ledger fx import|set|override|clear|list|show`, a posting without a rate
+`kushim ledger fx import|set|override|clear|list|show`, a posting without a rate
 names the command that fixes it, and `demo-seed` writes labelled demonstration
 rates so its dollar and pound documents still post.
 
@@ -1793,7 +1793,7 @@ Period-end unrealised revaluation stays out of scope as the design's cut line sa
 
 **Status, 2026-11-19 (the intra-EU supplies listing is in).** `store::vat::icp`
 projects the same 3a lines the return uses, grouped by the buyer's VAT identifier
-and country, and `bonk ledger icp --year --month` prints it or writes it as CSV
+and country, and `kushim ledger icp --year --month` prints it or writes it as CSV
 with `--csv`/`--out`. The buyer comes from the document's recipient snapshot, so a
 later rename cannot rewrite a filed listing; the identifier is normalised (spaces,
 dots, hyphens and slashes removed, uppercased) and checked for an obviously
@@ -1813,7 +1813,7 @@ each entry's content hash, the open items, every prepared VAT return in the wind
 the ICP listing for every month that had intra-EU supplies, and the UBL, PDF, and
 received bytes of every document dated in it. `manifest.json` lists each file with
 its SHA-256 and the audit chain head, and the export re-reads what it wrote before
-reporting success. `bonk ledger package --year --out` prints the counts. Everything
+reporting success. `kushim ledger package --year --out` prints the counts. Everything
 that can refuse is checked before the directory is created: an ICP listing that
 cannot name a buyer stops the package, so a handoff cannot quietly drop a 3a line,
 and an existing manifest is never overwritten. The reports are as of the window,
@@ -1824,7 +1824,7 @@ import, the performance benchmarks the exit criteria name, and the pilot migrati
 itself.
 
 **Status, 2026-11-19 (the books can start with an imported opening balance).**
-`bonk ledger opening <file> --date <date>` reads the documented
+`kushim ledger opening <file> --date <date>` reads the documented
 `account,side,amount` CSV, checks that every account exists and is on the balance
 sheet, checks that the sides agree, and posts one `Beginbalans <year>` entry in
 the `OPEN` journal; `--dry-run` prints the counts and both totals without writing.
@@ -2036,7 +2036,7 @@ Release mechanics:
 - Release artefacts include SBOM (CycloneDX) and SHA-256 sums.
 - Before shipping a migration, generate a fixture DB with the *previous*
   release binary and add it to the migration test corpus.
-- Support path: `bonk support-bundle` produces a redacted zip the user can
+- Support path: `kushim support-bundle` produces a redacted zip the user can
   inspect before sending.
 
 Lead-time items to start early: Windows code-signing certificate, Apple
@@ -2058,7 +2058,7 @@ against the table above: installers, code signing, notarisation, and the signed
 update manifest.
 
 **Status, 2026-11-06.** `v0.1.0-preview.3` is the first release to carry SBOMs
-and sums: the release page lists `bonk.cdx.json` and `SHA256SUMS` beside the five
+and sums: the release page lists `kushim.cdx.json` and `SHA256SUMS` beside the five
 archives, the pipeline ran green end to end in 33 minutes, and the downloaded set
 passes `sha256sum -c SHA256SUMS` for every hashed file. The document is CycloneDX
 1.6 with root `cli 0.1.0` and a timestamp of the commit's own time
@@ -2068,7 +2068,7 @@ resolves for the host target, so that one document described the Linux archive
 (438 components) and said nothing about what Windows or macOS link, and a user
 asking whether a Windows build carries a vulnerable crate would have got a
 confident wrong answer. The release job now emits one document per supported
-target — `bonk-<target>.cdx.json`, named after its archive — resolved with
+target — `kushim-<target>.cdx.json`, named after its archive — resolved with
 `--target`, and asserts five archives and five SBOMs before it writes the sums so
 a missing target cannot pass as a complete release. Generated from a Windows host
 for the same commit, the five resolve to 438 / 437 / 345 / 352 / 351 components

@@ -141,17 +141,17 @@ jobs:
           set -eu
           tools="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
           for target in aarch64-linux-android x86_64-linux-android; do
-            lib="target/$target/release/libbonkc.so"
+            lib="target/$target/release/libkushim.so"
             test -f "$lib"
-            "$tools/llvm-nm" -D "$lib" | grep -q uniffi_bonkc_fn_method_archive_summary
+            "$tools/llvm-nm" -D "$lib" | grep -q uniffi_kushim_fn_method_archive_summary
           done
           sh tools/check-page-size.sh \
-            target/aarch64-linux-android/release/libbonkc.so \
-            target/x86_64-linux-android/release/libbonkc.so
+            target/aarch64-linux-android/release/libkushim.so \
+            target/x86_64-linux-android/release/libkushim.so
 
       # The debug pair is what the emulator installs; the release APK is what a
       # tag publishes. `-Pnative` is not only about rebuilding: it is what puts
-      # `stripNdk` in the graph, and an unstripped libbonkc.so adds six megabytes
+      # `stripNdk` in the graph, and an unstripped libkushim.so adds six megabytes
       # to the APK.
       - name: APKs
         run: cd mobile && ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest :androidApp:assembleRelease -Pnative
@@ -190,7 +190,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: bonk-android
+          name: kushim-android
           path: |
             mobile/androidApp/build/outputs/apk/release/androidApp-arm64-v8a-release.apk
             mobile/androidApp/build/outputs/apk/release/androidApp-x86_64-release.apk
@@ -275,13 +275,13 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            binary: bonk
+            binary: kushim
           - os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
-            binary: bonk
+            binary: kushim
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            binary: bonk.exe
+            binary: kushim.exe
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
@@ -314,7 +314,7 @@ jobs:
         shell: bash
         run: |
           set -eu
-          name="bonk-${{ matrix.target }}"
+          name="kushim-${{ matrix.target }}"
           mkdir -p "dist/$name"
           cp "target/release/${{ matrix.binary }}" "dist/$name/"
           cp README.md LICENSE.md "dist/$name/"
@@ -325,7 +325,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $name = "bonk-${{ matrix.target }}"
+          $name = "kushim-${{ matrix.target }}"
           New-Item -ItemType Directory -Force -Path "dist/$name" | Out-Null
           Copy-Item "target/release/${{ matrix.binary }}" "dist/$name/"
           Copy-Item README.md, LICENSE.md "dist/$name/"
@@ -334,7 +334,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: bonk-${{ matrix.target }}
+          name: kushim-${{ matrix.target }}
           path: |
             dist/*.tar.gz
             dist/*.zip
@@ -375,11 +375,11 @@ jobs:
         run: cargo build --locked --release -p cli --target aarch64-apple-darwin
 
       - name: Smoke test the native binary
-        run: ./target/x86_64-apple-darwin/release/bonk --version
+        run: ./target/x86_64-apple-darwin/release/kushim --version
 
       - name: Check the cross-built binary is arm64
         run: |
-          archs=$(lipo -archs target/aarch64-apple-darwin/release/bonk)
+          archs=$(lipo -archs target/aarch64-apple-darwin/release/kushim)
           echo "aarch64-apple-darwin binary: $archs"
           if [ "$archs" != "arm64" ]; then
             echo "expected arm64, got '$archs'" >&2
@@ -390,9 +390,9 @@ jobs:
         run: |
           set -eu
           for target in x86_64-apple-darwin aarch64-apple-darwin; do
-            name="bonk-$target"
+            name="kushim-$target"
             mkdir -p "dist/$name"
-            cp "target/$target/release/bonk" "dist/$name/"
+            cp "target/$target/release/kushim" "dist/$name/"
             cp README.md LICENSE.md "dist/$name/"
             tar -czf "dist/$name.tar.gz" -C dist "$name"
           done
@@ -400,15 +400,15 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: bonk-x86_64-apple-darwin
-          path: dist/bonk-x86_64-apple-darwin.tar.gz
+          name: kushim-x86_64-apple-darwin
+          path: dist/kushim-x86_64-apple-darwin.tar.gz
           if-no-files-found: error
           retention-days: 14
 
       - uses: actions/upload-artifact@v7
         with:
-          name: bonk-aarch64-apple-darwin
-          path: dist/bonk-aarch64-apple-darwin.tar.gz
+          name: kushim-aarch64-apple-darwin
+          path: dist/kushim-aarch64-apple-darwin.tar.gz
           if-no-files-found: error
           retention-days: 14
 
@@ -436,14 +436,14 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: bonk-x86_64-unknown-linux-gnu
+          name: kushim-x86_64-unknown-linux-gnu
           path: package
 
       - name: Unpack the shipped binary
         run: |
-          tar -xzf package/bonk-x86_64-unknown-linux-gnu.tar.gz -C "$RUNNER_TEMP"
-          chmod +x "$RUNNER_TEMP/bonk-x86_64-unknown-linux-gnu/bonk"
-          echo "BONK_BIN=$RUNNER_TEMP/bonk-x86_64-unknown-linux-gnu/bonk" >> "$GITHUB_ENV"
+          tar -xzf package/kushim-x86_64-unknown-linux-gnu.tar.gz -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/kushim-x86_64-unknown-linux-gnu/kushim"
+          echo "KUSHIM_BIN=$RUNNER_TEMP/kushim-x86_64-unknown-linux-gnu/kushim" >> "$GITHUB_ENV"
 
       - name: EN 16931 corpus
         run: sh tools/validate-m1.sh
@@ -478,14 +478,14 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: bonk-x86_64-unknown-linux-gnu
+          name: kushim-x86_64-unknown-linux-gnu
           path: package
 
       - name: Unpack the shipped binary
         run: |
-          tar -xzf package/bonk-x86_64-unknown-linux-gnu.tar.gz -C "$RUNNER_TEMP"
-          chmod +x "$RUNNER_TEMP/bonk-x86_64-unknown-linux-gnu/bonk"
-          echo "BONK_BIN=$RUNNER_TEMP/bonk-x86_64-unknown-linux-gnu/bonk" >> "$GITHUB_ENV"
+          tar -xzf package/kushim-x86_64-unknown-linux-gnu.tar.gz -C "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/kushim-x86_64-unknown-linux-gnu/kushim"
+          echo "KUSHIM_BIN=$RUNNER_TEMP/kushim-x86_64-unknown-linux-gnu/kushim" >> "$GITHUB_ENV"
 
       - name: Every Factur-X level is PDF/A-3B
         run: sh tools/verapdf.sh
@@ -524,15 +524,15 @@ jobs:
                         x86_64-apple-darwin aarch64-apple-darwin; do
             cargo cyclonedx --manifest-path crates/cli/Cargo.toml \
               --format json --spec-version 1.6 --target "$target" \
-              --override-filename "bonk-$target.cdx"
-            cp "crates/cli/bonk-$target.cdx.json" dist/
+              --override-filename "kushim-$target.cdx"
+            cp "crates/cli/kushim-$target.cdx.json" dist/
           done
 
       - uses: actions/download-artifact@v8
         with:
-          # Everything a tag publishes is named bonk-*; the emulator's debug pair
+          # Everything a tag publishes is named kushim-*; the emulator's debug pair
           # is called instrumented-apks and stays out of the release.
-          pattern: bonk-*
+          pattern: kushim-*
           path: dist
           merge-multiple: true
 
@@ -541,8 +541,8 @@ jobs:
       - name: Name the APKs
         run: |
           set -eu
-          mv dist/androidApp-arm64-v8a-release.apk dist/bonk-android-arm64-v8a.apk
-          mv dist/androidApp-x86_64-release.apk dist/bonk-android-x86_64.apk
+          mv dist/androidApp-arm64-v8a-release.apk dist/kushim-android-arm64-v8a.apk
+          mv dist/androidApp-x86_64-release.apk dist/kushim-android-x86_64.apk
 
       # Every asset, including the SBOMs, so a download can be checked offline.
       # The counts are asserted first: a short set means an archive or a target
@@ -550,10 +550,10 @@ jobs:
       - name: Checksums
         run: |
           cd dist
-          test "$(ls bonk-*.tar.gz bonk-*.zip | wc -l)" -eq 5
-          test "$(ls bonk-*.apk | wc -l)" -eq 2
-          test "$(ls bonk-*.cdx.json | wc -l)" -eq 5
-          sha256sum bonk-*.tar.gz bonk-*.zip bonk-*.apk bonk-*.cdx.json > SHA256SUMS
+          test "$(ls kushim-*.tar.gz kushim-*.zip | wc -l)" -eq 5
+          test "$(ls kushim-*.apk | wc -l)" -eq 2
+          test "$(ls kushim-*.cdx.json | wc -l)" -eq 5
+          sha256sum kushim-*.tar.gz kushim-*.zip kushim-*.apk kushim-*.cdx.json > SHA256SUMS
           cat SHA256SUMS
 
       - name: List the assets

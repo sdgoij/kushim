@@ -192,7 +192,7 @@ mod tests {
     fn creates_persists_and_reopens() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
 
         {
             let database = Database::create(&path, &keystore).unwrap();
@@ -219,7 +219,7 @@ mod tests {
     fn create_refuses_to_overwrite() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
         drop(Database::create(&path, &keystore).unwrap());
         assert!(Database::create(&path, &keystore).is_err());
     }
@@ -229,7 +229,7 @@ mod tests {
     fn a_wrong_key_cannot_open_the_file() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
         drop(Database::create(&path, &keystore).unwrap());
 
         let other_dir = TempDir::new().unwrap();
@@ -242,7 +242,7 @@ mod tests {
     fn the_file_does_not_contain_plaintext() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
 
         {
             let database = Database::create(&path, &keystore).unwrap();
@@ -251,7 +251,7 @@ mod tests {
 
         let mut scanned = Vec::new();
         for suffix in ["", "-wal", "-shm"] {
-            let candidate = dir.path().join(format!("bonk.db{suffix}"));
+            let candidate = dir.path().join(format!("kushim.db{suffix}"));
             if candidate.exists() {
                 scanned.extend(std::fs::read(candidate).unwrap());
             }
@@ -264,7 +264,7 @@ mod tests {
     fn opening_is_idempotent() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
         drop(Database::create(&path, &keystore).unwrap());
 
         for _ in 0..3 {
@@ -277,7 +277,7 @@ mod tests {
     fn backup_inherits_the_key_and_the_data() {
         let dir = TempDir::new().unwrap();
         let keystore = temp_keystore(&dir);
-        let path = dir.path().join("bonk.db");
+        let path = dir.path().join("kushim.db");
         let backup = dir.path().join("backup.db");
 
         {

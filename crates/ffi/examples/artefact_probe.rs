@@ -3,8 +3,8 @@
 //! Run with `cargo run -p ffi --example artefact_probe` and compare the output
 //! with the values the Android probe prints.
 
-fn main() -> Result<(), bonkc::AppError> {
-    let hashes = bonkc::artefact_hashes()?;
+fn main() -> Result<(), kushim::AppError> {
+    let hashes = kushim::artefact_hashes()?;
     println!("ubl_sha256={}", hashes.ubl_sha256);
     println!("pdf_sha256={}", hashes.pdf_sha256);
     println!("ubl_len={}", hashes.ubl_len);

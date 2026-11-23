@@ -321,7 +321,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bonk-fuzz"
+name = "kushim-fuzz"
 version = "0.0.0"
 dependencies = [
  "import",

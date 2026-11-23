@@ -33,7 +33,7 @@ struct Archive {
 
 fn new_archive() -> Archive {
     let dir = TempDir::new().unwrap();
-    let database = dir.path().join("bonk.db");
+    let database = dir.path().join("kushim.db");
     let keystore = dir.path().join("keystore.bin");
 
     let key_store = KeyStore::create(&keystore, PASS, KdfParams::TEST).unwrap();

@@ -349,7 +349,7 @@ mod tests {
     fn database() -> (tempfile::TempDir, Database) {
         let directory = tempfile::TempDir::new().unwrap();
         let keystore = KeyStore::create(directory.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-        let database = Database::create(directory.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(directory.path().join("kushim.db"), &keystore).unwrap();
         (directory, database)
     }
 

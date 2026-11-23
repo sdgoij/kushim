@@ -39,7 +39,7 @@ impl Books {
     fn open() -> Self {
         let dir = TempDir::new().unwrap();
         let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-        let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+        let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
         seed_starter_chart(database.connection(), NOW).unwrap();
 
         let seller = SellerId::new();

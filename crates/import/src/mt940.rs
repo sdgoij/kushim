@@ -314,7 +314,7 @@ fn amount_of(text: &str, currency: Currency, what: &str) -> Result<i64, BankErro
 mod tests {
     use super::*;
 
-    const SAMPLE: &str = ":20:BONK-2026-02
+    const SAMPLE: &str = ":20:KUSHIM-2026-02
 :25:NL91ABNA0417164300
 :28C:1/1
 :60F:C260201EUR1000,00

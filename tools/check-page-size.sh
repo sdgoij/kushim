@@ -6,7 +6,7 @@
 # so the check belongs next to the cross-build rather than in a review.
 set -eu
 
-[ "$#" -gt 0 ] || { echo "usage: tools/check-page-size.sh libbonkc.so..." >&2; exit 2; }
+[ "$#" -gt 0 ] || { echo "usage: tools/check-page-size.sh libkushim.so..." >&2; exit 2; }
 ndk=${ANDROID_NDK_HOME:?set ANDROID_NDK_HOME to the NDK root}
 case "$(uname -s)" in
     MINGW* | MSYS* | CYGWIN*) host=windows-x86_64; exe=.exe ;;

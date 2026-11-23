@@ -21,7 +21,7 @@ fn party(name: &str) -> Party {
 fn fixture() -> (TempDir, Database, SellerId, CustomerId, CustomerId) {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "passphrase", KdfParams::TEST).unwrap();
-    let database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
 
     let seller_id = SellerId::new();
     let customer_id = CustomerId::new();

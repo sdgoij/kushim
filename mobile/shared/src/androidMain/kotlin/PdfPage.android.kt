@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer

@@ -57,7 +57,7 @@ impl IdleLock {
     }
 }
 
-/// Reads the limit from `BONK_IDLE_MINUTES`, falling back to the default.
+/// Reads the limit from `KUSHIM_IDLE_MINUTES`, falling back to the default.
 ///
 /// Out-of-range and unparsable values are clamped rather than refused: a typo in
 /// an environment variable must not leave the workspace unlocked forever.
@@ -71,7 +71,7 @@ pub fn timeout_from(value: Option<&str>) -> Duration {
 
 /// The limit this process should use.
 pub fn configured_timeout() -> Duration {
-    timeout_from(std::env::var("BONK_IDLE_MINUTES").ok().as_deref())
+    timeout_from(std::env::var("KUSHIM_IDLE_MINUTES").ok().as_deref())
 }
 
 #[cfg(test)]

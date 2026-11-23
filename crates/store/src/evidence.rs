@@ -45,7 +45,7 @@ use crate::ledger::PostingSource;
 use crate::vat::Rubriek;
 
 /// Marker in the manifest.
-pub const FORMAT: &str = "bonk-evidence";
+pub const FORMAT: &str = "kushim-evidence";
 /// Bundle layout version.
 pub const VERSION: u32 = 1;
 

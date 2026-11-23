@@ -6,7 +6,7 @@
 set -eu
 
 serial=${1:--}
-package=com.github.sdgoij.bonk
+package=com.github.sdgoij.kushim
 destination=mobile/androidApp/src/androidTest/assets/screenshots
 
 adb_of() {

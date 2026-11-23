@@ -43,9 +43,9 @@ mod unix {
     }
 
     fn paths(root: &TempDir) -> (PathBuf, PathBuf, PathBuf) {
-        let directory = root.path().join("Bonk");
+        let directory = root.path().join("Kushim");
         permissions::private_directory(&directory).unwrap();
-        let database = directory.join("bonk.db");
+        let database = directory.join("kushim.db");
         let keystore = directory.join("keystore.bin");
         (directory, database, keystore)
     }

@@ -1,6 +1,6 @@
 # Technical Design Document
 
-**Project:** Bonk (working name; final name TBD) — local-first e-invoicing client
+**Project:** Kushim (ADR-026) — local-first e-invoicing client
 **Status:** Draft 0.3 for review
 **Date:** 2026-10-27
 **Supersedes:** `../../spec.md` where the two documents disagree
@@ -437,14 +437,14 @@ Crate boundaries are the architecture; do not merge them for convenience.
 | `bridge` | Connector port definitions, outbox dispatch, plugin host, sidecar protocol | storage internals, UI |
 | `sync` | HLC, oplog, CRDT types, relay client, anti-entropy | UI |
 | `app` | egui application as a library: views, command/query dispatch, view models, undo | direct SQL, direct HTTP |
-| `cli` | The `bonk` binary: GUI entry point plus `validate`, `export`, `import`, `migrate`, `verify`, `support-bundle` subcommands | UI internals |
+| `cli` | The `kushim` binary: GUI entry point plus `validate`, `export`, `import`, `migrate`, `verify`, `support-bundle` subcommands | UI internals |
 | `testkit` | Fixtures, builders, fake clock, fake connector, golden-file harness | production code |
 | `xtask` | Artifact fetching, conformance runner, packaging | everything (dev only) |
 
-A single binary (currently `bonk`; the product name is a placeholder) exposes
-both the GUI and a CLI subcommand so that CI, accountants, and support can do
-everything the GUI can. The binary name is defined in one place and is the only
-thing a future rename touches.
+A single binary (`kushim`) exposes both the GUI and a CLI subcommand so that CI,
+accountants, and support can do everything the GUI can. The binary name is
+defined in `crates/cli/Cargo.toml`; ADR-026 records where else the product name
+appears.
 
 v1.1 adds three crates in the same dependency ring (see `accounting-design.md`):
 `ledger` (accounts, postings, periods, balances — depends only on `crux`),
@@ -653,7 +653,7 @@ Rotation is deliberate rather than left to a folder sync: `store::backup` writes
 copies beyond the retention limit. A copy that fails verification is kept and
 reported — it may still be the only evidence of what went wrong. Verification
 never opens the copy writable, so judging a backup cannot repair it. Restore is a
-file copy onto a clean machine plus the same keystore; `bonk verify-backup`
+file copy onto a clean machine plus the same keystore; `kushim verify-backup`
 checks a copy without touching the live database.
 
 ### 7.3 Core schema
@@ -860,7 +860,7 @@ CREATE TABLE artefact (
     template_digest    TEXT                -- SHA-256 of the template file, when one laid it out
 );
 
--- `renderer_version` names the engine (`bonk-layout-1`); `template_digest` names
+-- `renderer_version` names the engine (`kushim-layout-1`); `template_digest` names
 -- the layout it applied. A filed PDF is a copy of what was issued, so its layout
 -- cannot be re-derived later: the template file lives beside the archive, not in
 -- it, and may be edited or deleted. Null where no template was involved — a
@@ -1498,7 +1498,7 @@ a timestamping authority.
 A zip containing: `manifest.json` (hashes, chain head, app version, artifacts
 versions), `semantic.json`, `invoice.ubl` / `invoice.cii`, `invoice.pdf`,
 `receipts/*`, `audit.jsonl`, `verification.txt`. A bundled verifier
-(`bonk verify bundle.zip`) recomputes everything offline. This is what you hand
+(`kushim verify bundle.zip`) recomputes everything offline. This is what you hand
 to an accountant, an auditor, or a court.
 
 ### 13.4 GDPR posture

@@ -1,4 +1,4 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,7 +44,7 @@ fun NavigationRailPanel(destination: RailDestination, onSelect: (RailDestination
             modifier = Modifier.fillMaxHeight().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("Bonk", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(12.dp))
+            Text("Kushim", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(12.dp))
             Spacer(Modifier.height(8.dp))
             RailEntry(strings.home, destination == RailDestination.Home) { onSelect(RailDestination.Home) }
             RailEntry(strings.customers, destination == RailDestination.Customers) {

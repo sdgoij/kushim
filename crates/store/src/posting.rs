@@ -378,7 +378,7 @@ fn rate_required(document: &DocumentFacts) -> Result<Option<ExchangeRate>, Store
         return Ok(Some(rate));
     }
     Err(StoreError::Rejected(format!(
-        "document {} is in {} and the books report in {}, but there is no rate on or before {}; import a rate file (`bonk ledger fx import <file>`) or choose one for this document (`bonk ledger fx override {} --rate <{} per {}>`)",
+        "document {} is in {} and the books report in {}, but there is no rate on or before {}; import a rate file (`kushim ledger fx import <file>`) or choose one for this document (`kushim ledger fx override {} --rate <{} per {}>`)",
         document.number,
         document.currency,
         document.base_currency,

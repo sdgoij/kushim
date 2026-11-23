@@ -28,7 +28,7 @@ fn party(name: &str) -> Party {
 fn archived() -> (TempDir, Database, KeyStore, SellerId) {
     let dir = TempDir::new().unwrap();
     let keystore = KeyStore::create(dir.path().join("keystore.bin"), "pass", KdfParams::TEST).unwrap();
-    let mut database = Database::create(dir.path().join("bonk.db"), &keystore).unwrap();
+    let mut database = Database::create(dir.path().join("kushim.db"), &keystore).unwrap();
 
     let seller_id = SellerId::new();
     let mut seller_party = party(SELLER_NAME);
@@ -140,7 +140,7 @@ fn a_bundle_has_counts_and_no_business_facts() {
     let summary = support::write(
         &database,
         &SupportRequest {
-            database_path: &dir.path().join("bonk.db"),
+            database_path: &dir.path().join("kushim.db"),
             keystore_path: &dir.path().join("keystore.bin"),
             app_version: "0.1.0-test",
             directory: &bundle,
@@ -187,7 +187,7 @@ fn a_bundle_has_counts_and_no_business_facts() {
     assert!(text.contains("imported 1"), "{text}");
     assert!(text.contains("encryption:"), "{text}");
     assert!(json.contains("\"schema_version\": 22"), "{json}");
-    assert!(json.contains("\"format\": \"bonk-support\""), "{json}");
+    assert!(json.contains("\"format\": \"kushim-support\""), "{json}");
 }
 
 #[test]
@@ -195,7 +195,7 @@ fn an_existing_bundle_is_not_overwritten() {
     let (dir, database, _keystore, _seller) = archived();
     let bundle = dir.path().join("support");
     let request = SupportRequest {
-        database_path: &dir.path().join("bonk.db"),
+        database_path: &dir.path().join("kushim.db"),
         keystore_path: &dir.path().join("keystore.bin"),
         app_version: "0.1.0-test",
         directory: &bundle,

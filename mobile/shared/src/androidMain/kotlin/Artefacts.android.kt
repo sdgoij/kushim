@@ -1,6 +1,6 @@
-package com.github.sdgoij.bonk
+package com.github.sdgoij.kushim
 
-import uniffi.bonkc.artefactHashes
+import uniffi.kushim.artefactHashes
 
 actual fun runArtefactHashes(): String {
     val hashes = artefactHashes()
