@@ -173,6 +173,31 @@ the index, so a partially staged change needs its own care.
 
 ## Run
 
+The shortest route is the demo archive and the window:
+
+```sh
+just demo     # seed an encrypted archive: a seller, customers, a few hundred documents
+just run      # open the window; the demo passphrase is kushim-demo
+```
+
+`just demo` writes to the platform data directory and replaces what is there. It
+is the only archive with data in it, so it is also the only one worth looking at
+before you have books of your own.
+
+Without `just`, the same two commands by hand:
+
+```sh
+sh tools/cargo-strawberry.sh run -p cli -- demo-seed   # Windows
+cargo run -p cli -- demo-seed                          # macOS / Linux
+cargo run -p cli -- gui
+```
+
+`kushim gui` without `--db` opens the platform data directory. Point it elsewhere
+with `--db` and `--keystore`; point it at a path that does not exist yet to see
+the first-run screen, which seals a new archive rather than asking for one.
+
+For an archive of your own:
+
 ```sh
 # macOS / Linux
 cargo run -p cli -- init --db ./kushim.db --keystore ./keystore.bin
@@ -521,13 +546,17 @@ is fileable on the demo for the same reason.
 
 ### The window
 
-Before the shell, the window shows a lock screen: the archive path, the keystore
-path, the passphrase, and the recovery route. Both paths have the platform's file
-picker beside a field that stays editable. `kushim gui --db … --keystore …` starts
-the window on that archive; without the flags it uses the platform data directory.
-A passphrase given on the command line is deliberately ignored by the window:
-typing it at the lock screen is the only way in, and **Remember this device** is
-the supported shortcut for repeat use. Auto-unlocking from a flag or
+Before the shell, the window shows a lock screen: one centred column with the
+name, a line of what the product is, and a card holding one filled button. Which
+form it opens on follows the archive — a database that is not there yet is a
+first run and opens on **Create**, an existing one opens on **Unlock**. The
+archive and key-file paths sit folded under **Where the books live**, closed
+because only someone opening books kept elsewhere needs them, with the platform's
+file picker beside a field that stays editable. `kushim gui --db … --keystore …`
+starts the window on that archive; without the flags it uses the platform data
+directory. A passphrase given on the command line is deliberately ignored by the
+window: typing it at the lock screen is the only way in, and **Remember this
+device** is the supported shortcut for repeat use. Auto-unlocking from a flag or
 `KUSHIM_PASSPHRASE` would turn an unattended launch into an open archive.
 
 The window is a four-tab shell: a thin icon rail on the left switches **Search**,
