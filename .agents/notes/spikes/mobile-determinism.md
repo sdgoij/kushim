@@ -39,7 +39,9 @@ emulator. Adding the archive layer did not move the renderer or the writer.
 `crates/ffi/src/lib.rs` exports `artefact_hashes()`, which builds one fixed
 invoice and hashes both artefacts:
 
-- seller `Bonk Demo BV`, customer `Voorbeeld Klant BV`, both NL;
+- seller `Kushim Demo BV`, customer `Voorbeeld Klant BV`, both NL — the probe
+  ran before the rename, so the digests below were taken with the seller still
+  named `Bonk Demo BV` and do not reproduce from today's string;
 - invoice `2026-0001`, issue `2026-11-07`, due `2026-12-07`, EUR;
 - two lines: 3 × 150.00 pieces and 12.5 × 95.00 hours, 21 % VAT;
 - totals from `crux::calculate_totals`, not hand-written constants;
