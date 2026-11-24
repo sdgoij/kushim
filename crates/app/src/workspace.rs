@@ -2503,41 +2503,79 @@ impl Workspace {
                 None => return,
             };
             match update {
-                Ok(BackupUpdate::Stage(stage)) => {
-                    if let Some(job) = &mut self.backup_job {
-                        job.stage = stage;
+                Ok(update) => {
+                    if self.apply_backup_update(session, update) {
+                        return;
                     }
-                }
-                Ok(BackupUpdate::Finished(outcome)) => {
-                    self.backup_job = None;
-                    let language = self.language;
-                    match outcome {
-                        Ok(report) => {
-                            self.message = Some(Message::ok(text::settings::backup_done(
-                                language,
-                                &report.path.display().to_string(),
-                                report.bytes / 1024,
-                            )));
-                            self.health = Health::snapshot(session.database(), session.database_path()).ok();
-                        }
-                        Err(error) => {
-                            self.message = Some(Message::error(text::settings::backup_failed(
-                                language,
-                                &error.to_string(),
-                            )));
-                        }
-                    }
-                    return;
                 }
                 Err(mpsc::TryRecvError::Empty) => return,
                 Err(mpsc::TryRecvError::Disconnected) => {
-                    // The worker died without answering, so the card must not
-                    // show a backup that is not coming.
-                    self.backup_job = None;
-                    let language = self.language;
-                    self.message = Some(Message::error(text::settings::backup_stopped(language).to_owned()));
+                    self.backup_stopped();
                     return;
                 }
+            }
+        }
+    }
+
+    /// Applies one message from the backup worker; true when the job is over.
+    fn apply_backup_update(&mut self, session: &Session, update: BackupUpdate) -> bool {
+        match update {
+            BackupUpdate::Stage(stage) => {
+                if let Some(job) = &mut self.backup_job {
+                    job.stage = stage;
+                }
+                false
+            }
+            BackupUpdate::Finished(outcome) => {
+                self.backup_job = None;
+                let language = self.language;
+                match outcome {
+                    Ok(report) => {
+                        self.message = Some(Message::ok(text::settings::backup_done(
+                            language,
+                            &report.path.display().to_string(),
+                            report.bytes / 1024,
+                        )));
+                        self.health = Health::snapshot(session.database(), session.database_path()).ok();
+                    }
+                    Err(error) => {
+                        self.message = Some(Message::error(text::settings::backup_failed(
+                            language,
+                            &error.to_string(),
+                        )));
+                    }
+                }
+                true
+            }
+        }
+    }
+
+    /// Records that the worker died without answering.
+    fn backup_stopped(&mut self) {
+        // The worker died without answering, so the card must not show a backup
+        // that is not coming.
+        self.backup_job = None;
+        let language = self.language;
+        self.message = Some(Message::error(text::settings::backup_stopped(language).to_owned()));
+    }
+
+    /// Waits for the backup worker without sleeping between checks.
+    ///
+    /// The window polls with `try_recv` once per frame. A test that slept and
+    /// then polled again would report the machine's speed — it fails when the
+    /// runner is slow, which is not a fact about this code. This blocks on the
+    /// channel instead, with a timeout only a hang reaches.
+    #[cfg(test)]
+    fn wait_for_backup(&mut self, session: &Session) {
+        loop {
+            let Some(job) = self.backup_job.as_ref() else {
+                return;
+            };
+            let Ok(update) = job.updates.recv_timeout(Duration::from_secs(120)) else {
+                return;
+            };
+            if self.apply_backup_update(session, update) {
+                return;
             }
         }
     }
@@ -3077,36 +3115,74 @@ impl Workspace {
                 None => return,
             };
             match update {
-                Ok(HealthUpdate::Stage(stage)) => {
-                    if let Some(job) = &mut self.health_check {
-                        job.stage = stage;
+                Ok(update) => {
+                    if self.apply_health_update(update) {
+                        return;
                     }
-                }
-                Ok(HealthUpdate::Finished(started, outcome)) => {
-                    self.health_check = None;
-                    if let Some(health) = &mut self.health {
-                        health.apply(&started, outcome);
-                    }
-                    return;
                 }
                 Err(mpsc::TryRecvError::Empty) => return,
                 Err(mpsc::TryRecvError::Disconnected) => {
-                    // The worker died without answering, so the panel must not
-                    // wait forever for a result that is not coming.
-                    self.health_check = None;
-                    let language = self.language;
-                    if let Some(health) = &mut self.health {
-                        health.apply(
-                            &store::now_rfc3339(),
-                            CheckOutcome {
-                                report: None,
-                                links: None,
-                                error: Some(text::health::check_stopped(language).to_owned()),
-                            },
-                        );
-                    }
+                    self.health_stopped();
                     return;
                 }
+            }
+        }
+    }
+
+    /// Applies one message from the health worker; true when the job is over.
+    fn apply_health_update(&mut self, update: HealthUpdate) -> bool {
+        match update {
+            HealthUpdate::Stage(stage) => {
+                if let Some(job) = &mut self.health_check {
+                    job.stage = stage;
+                }
+                false
+            }
+            HealthUpdate::Finished(started, outcome) => {
+                self.health_check = None;
+                if let Some(health) = &mut self.health {
+                    health.apply(&started, outcome);
+                }
+                true
+            }
+        }
+    }
+
+    /// Records that the worker died without answering.
+    fn health_stopped(&mut self) {
+        // The worker died without answering, so the panel must not wait forever
+        // for a result that is not coming.
+        self.health_check = None;
+        let language = self.language;
+        if let Some(health) = &mut self.health {
+            health.apply(
+                &store::now_rfc3339(),
+                CheckOutcome {
+                    report: None,
+                    links: None,
+                    error: Some(text::health::check_stopped(language).to_owned()),
+                },
+            );
+        }
+    }
+
+    /// Waits for the health worker without sleeping between checks.
+    ///
+    /// The window polls with `try_recv` once per frame. A test that slept and
+    /// then polled again would report the machine's speed — it fails when the
+    /// runner is slow, which is not a fact about this code. This blocks on the
+    /// channel instead, with a timeout only a hang reaches.
+    #[cfg(test)]
+    fn wait_for_health_check(&mut self) {
+        loop {
+            let Some(job) = self.health_check.as_ref() else {
+                return;
+            };
+            let Ok(update) = job.updates.recv_timeout(Duration::from_secs(120)) else {
+                return;
+            };
+            if self.apply_health_update(update) {
+                return;
             }
         }
     }
@@ -7097,11 +7173,7 @@ mod tests {
             "the frame did not wait for the answer"
         );
 
-        let deadline = Instant::now() + Duration::from_secs(30);
-        while workspace.health_check.is_some() && Instant::now() < deadline {
-            std::thread::sleep(Duration::from_millis(20));
-            workspace.poll_health_check();
-        }
+        workspace.wait_for_health_check();
 
         assert!(workspace.health_check.is_none(), "the worker answered");
         let health = workspace.health.as_ref().unwrap();
@@ -7124,11 +7196,7 @@ mod tests {
         workspace.run_backup(&session);
         assert!(workspace.backup_job.is_some(), "the backup is a job, not a call");
 
-        let deadline = Instant::now() + Duration::from_secs(60);
-        while workspace.backup_job.is_some() && Instant::now() < deadline {
-            std::thread::sleep(Duration::from_millis(20));
-            workspace.poll_backup(&session);
-        }
+        workspace.wait_for_backup(&session);
 
         assert!(workspace.backup_job.is_none(), "the worker answered");
         let message = workspace.message.as_ref().expect("the card says what happened");

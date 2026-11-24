@@ -111,7 +111,14 @@ fn a_kill_during_a_write_leaves_a_readable_archive() {
         // The child is mid-round now. Kill it somewhere inside the next few
         // writes, then keep the pipe drained until the process is gone.
         seed = mix(seed);
+        let before = wal_len(&archive);
         std::thread::sleep(Duration::from_micros(200 + seed % 30_000));
+        // A fixed sleep is not evidence that the write had begun: on a loaded
+        // host the child can be descheduled for the whole delay, and then this
+        // round would kill a writer between rounds and count for nothing. Frames
+        // appended since `ready` are that evidence, so wait for them instead of
+        // trusting the clock.
+        wait_for_frames(&archive, before, child.id());
         child.kill().unwrap();
         let _ = child.wait().unwrap();
 
@@ -130,6 +137,21 @@ fn a_kill_during_a_write_leaves_a_readable_archive() {
         "no kill left a write-ahead log behind, so nothing was interrupted"
     );
     eprintln!("kills with a live write-ahead log: {interrupted_writes}/{ROUNDS}");
+}
+
+/// Waits until the write-ahead log has grown since `before`, so the kill lands
+/// inside a write rather than in the gap between two rounds.
+///
+/// The bound is a hang detector, not a budget: a round appends frames within
+/// microseconds, and ten seconds means the child is wedged rather than slow.
+fn wait_for_frames(archive: &Archive, before: u64, pid: u32) {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while wal_len(archive) == before {
+        if Instant::now() >= deadline {
+            panic!("the writer appended no frames to interrupt (pid {pid})");
+        }
+        std::thread::sleep(Duration::from_millis(1));
+    }
 }
 
 fn wal_len(archive: &Archive) -> u64 {
